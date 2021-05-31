@@ -231,15 +231,16 @@ public:
     
     // тикер, вызывать почаще. Возвращает true, если мотор всё ещё движется к цели
     bool tick() {
-        if (_workState) {            
+        if (_workState) {
+            tickUs = micros();
             #ifndef SMOOTH_ALGORITHM				
             if (!_curMode && _accel != 0 && _maxSpeed >= _MIN_SPEED_FP) planner();	// планировщик скорости FOLLOW_POS быстрый		
             #endif
             
             if (_smoothStart && _curMode) smoothSpeedPlanner();		// планировщик скорости KEEP_SPEED
             
-            if (micros() - _prevTime >= stepTime) {					// основной таймер степпера
-                _prevTime += stepTime;				
+            if (tickUs - _prevTime >= stepTime) {					// основной таймер степпера
+                _prevTime = tickUs;				
                 
                 #ifdef SMOOTH_ALGORITHM
                 // плавный планировщик вызывается каждый шаг. Проверка остановки
@@ -639,7 +640,7 @@ private:
 #else
     // планировщик скорости мой
     void planner() {
-        if (micros() - _plannerTime >= _plannerPrd) {
+        if (tickUs - _plannerTime >= _plannerPrd) {
             _plannerTime += _plannerPrd;
             // ~110 us				
             long err = _target - _current;											// "ошибка"
@@ -664,8 +665,8 @@ private:
     
     // планировщик разгона для KEEP_SPEED
     void smoothSpeedPlanner() {
-        if (micros() - _smoothPlannerTime >= _smoothPlannerPrd) {
-            _smoothPlannerTime += _smoothPlannerPrd;
+        if (tickUs - _smoothPlannerTime >= _smoothPlannerPrd) {
+            _smoothPlannerTime = tickUs;
             int8_t dir = _sign(_speed - _accelSpeed);	// 1 - разгон, -1 - торможение
             _accelSpeed += (_accelTime * _smoothPlannerPrd * dir);			
             _dir = _sign(_accelSpeed);
@@ -689,6 +690,7 @@ private:
     float _accelSpeed = 0;
     int32_t _current = 0;
     int32_t _target = 0;
+    volatile uint32_t tickUs = 0;
 
     int8_t thisStep = 0;
     int8_t _dir = 1;
