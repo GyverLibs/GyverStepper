@@ -385,7 +385,7 @@ public:
         // 1 шаг в час минимум
         _speed = speed;
         if (abs(_speed) < _MIN_STEP_SPEED) _speed = _MIN_STEP_SPEED * _sign(_speed);
-
+        enable();
         if (_accel != 0) {							// плавный старт		
             if (_accelSpeed != _speed) {
                 _smoothStart = true;
@@ -408,8 +408,7 @@ public:
             _accelSpeed = _speed;
             stepTime = round(1000000.0 / abs(_speed));
             _dir = (_speed > 0) ? 1 : -1;	
-        }		
-        enable();
+        }        
     }
     
     // установка целевой скорости в градусах/секунду
@@ -471,8 +470,12 @@ public:
     
     // получить минимальный период, с которым нужно вызывать tick при заданной макс. скорости
     uint32_t getMinPeriod() {
-        if (_curMode == KEEP_SPEED) return abs(1000000.0 / _speed);
-        else return (1000000.0 / _maxSpeed);
+        float curSpeed;
+        if (_curMode == KEEP_SPEED) {
+            curSpeed = abs(_speed);
+            if (abs(_accelSpeed) > curSpeed) curSpeed = abs(_accelSpeed);
+        } else curSpeed = _maxSpeed;
+        return (1000000.0 / curSpeed);
     }
 
     // время между шагами
