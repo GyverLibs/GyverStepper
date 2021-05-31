@@ -37,6 +37,7 @@
     v1.12 - пофикшена плавная работа в KEEP_SPEED. Добавлена поддержка "внешних" драйверов. Убран аргумент SMOOTH из setSpeed
     v1.13 - исправлены мелкие баги, оптимизация
     v1.14 - исправлены ошибки разгона и торможения в KEEP_SPEED
+    v1.15 - оптимизация, исправлены мелкие баги, stop() больше не сбрасывает maxSpeed
 */
 
 /*
@@ -108,7 +109,7 @@ void setAccelerationDeg(float accel);
 // Автоотключение EN при достижении позиции - true (по умолч. false).
 void autoPower(bool mode);
 
-// Плавная остановка с заданным ускорением от текущего положения. 
+// Плавная остановка с заданным ускорением от текущего положения
 // Работает также в режиме KEEP_SPEED
 void stop();
 
@@ -202,13 +203,13 @@ template <GS_driverType _DRV, GS_driverType _TYPE = STEPPER_PINS>
 class GStepper {
 public:	
     // конструктор
-    GStepper(int stepsPerRev, int8_t pin1 = -1, int8_t pin2 = -1, int8_t pin3 = -1, int8_t pin4 = -1, int8_t pin5 = -1) : 
+    GStepper(int stepsPerRev, uint8_t pin1 = 255, uint8_t pin2 = 255, uint8_t pin3 = 255, uint8_t pin4 = 255, uint8_t pin5 = 255) : 
     _stepsPerDeg(stepsPerRev / 360.0) {
         if (_TYPE == STEPPER_PINS) {
             if (_DRV == STEPPER2WIRE) {
                 configurePin(0, pin1);
                 configurePin(1, pin2);
-                if (pin3 != -1) {
+                if (pin3 != 255) {
                     _enPin = pin3;
                     pinMode(_enPin, OUTPUT);
                 }
@@ -217,7 +218,7 @@ public:
                 configurePin(1, pin2);
                 configurePin(2, pin3);
                 configurePin(3, pin4);
-                if (pin5 != -1) {
+                if (pin5 != 255) {
                     _enPin = pin5;
                     pinMode(_enPin, OUTPUT);
                 }
@@ -228,9 +229,9 @@ public:
         setAcceleration(300);
     }
     
-    // возвращает true, если мотор всё ещё движется к цели
+    // тикер, вызывать почаще. Возвращает true, если мотор всё ещё движется к цели
     bool tick() {
-        if (_workState) {
+        if (_workState) {            
             #ifndef SMOOTH_ALGORITHM				
             if (!_curMode && _accel != 0 && _maxSpeed >= _MIN_SPEED_FP) planner();	// планировщик скорости FOLLOW_POS быстрый		
             #endif
@@ -275,13 +276,19 @@ public:
     // инвертировать поведение EN пина
     void invertEn(bool dir) 		{ _enDir = dir; }
 
-    // установка и чтение текущей позиции в шагах и градусах
+    // установка текущей позиции в шагах
     void setCurrent(long pos) 		{ _current = pos; _accelSpeed = 0; }
+    
+    // установка текущей позиции в градусах
     void setCurrentDeg(float pos) 	{ setCurrent((float)pos * _stepsPerDeg); }
+    
+    // чтение текущей позиции в шагах
     long getCurrent() 				{ return _current; }
+    
+    // чтение текущей позиции в градусах
     float getCurrentDeg() 			{ return ((float)_current / _stepsPerDeg); }
 
-    // установка и получение целевой позиции в шагах и градусах
+    // установка целевой позиции в шагах
     void setTarget(long pos, GS_posType type = ABSOLUTE) {
         _target = type ? (_current + pos) : pos;		
         if (_target != _current) {
@@ -293,11 +300,16 @@ public:
         }
     }
     
+    // установка целевой позиции в градусах
     void setTargetDeg(float pos, GS_posType type = ABSOLUTE) 	{ setTarget((float)pos * _stepsPerDeg, type); }
+    
+    // получение целевой позиции в шагах
     long getTarget() 				{ return _target; }
+    
+    // целевой позиции в градусах
     float getTargetDeg() 			{ return ((float)_target / _stepsPerDeg); }
 
-    // установка максимальной скорости в шагах/секунду и градусах/секунду
+    // установка максимальной скорости в шагах/секунду
     void setMaxSpeed(float speed) {
         speed = abs(speed);
         _maxSpeed = maxMacro(speed, _MIN_STEP_SPEED);	// 1 шаг в час минимум
@@ -317,9 +329,10 @@ public:
         #endif
     }
     
+    // установка максимальной скорости в градусах/секунду
     void setMaxSpeedDeg(float speed)		{ setMaxSpeed((float)speed * _stepsPerDeg); }
 
-    // установка ускорения шагах и градусах в секунду
+    // установка ускорения в шагах/секунду^2
     void setAcceleration(int accel)	{
         _accel = abs(accel);
         _accelInv = 0.5f / accel;
@@ -330,6 +343,8 @@ public:
         plannerSmooth();
         #endif
     }
+    
+    // установка ускорения в градусах/секунду^2
     void setAccelerationDeg(float accel) 	{ setAcceleration(accel * _stepsPerDeg); }
     
     // автоотключение питания при остановке
@@ -342,7 +357,8 @@ public:
             if (_curMode == FOLLOW_POS) {
                 _accelSpeed = 1000000.0f / stepTime * _dir;
                 setTarget(_current + (float)_accelSpeed * _accelSpeed * _accelInv * _dir);
-                setMaxSpeed(abs(_accelSpeed));
+                //setMaxSpeed(abs(_accelSpeed));
+                _stopSpeed = abs(_accelSpeed);
                 #ifdef SMOOTH_ALGORITHM
                 _n = (float)_accelSpeed * _accelSpeed * _accelInv;
                 #endif
@@ -355,10 +371,7 @@ public:
     // резкая остановка
     void brake() {		
         disable();
-        _accelSpeed = 0;
-        #ifdef SMOOTH_ALGORITHM
-        _n = 0;
-        #endif		
+        resetMotor();
     }
     
     // остановка и сброс позиции в 0
@@ -367,7 +380,7 @@ public:
         setCurrent(0);
     }
 
-    // установка и получение целевой скорости в шагах/секунду и градусах/секунду
+    // установка целевой скорости в шагах/секунду
     void setSpeed(float speed, bool smooth = false) {	// smooth убран!
         // 1 шаг в час минимум
         _speed = speed;
@@ -399,8 +412,13 @@ public:
         enable();
     }
     
+    // установка целевой скорости в градусах/секунду
     void setSpeedDeg(float speed, bool smooth = false) 	{setSpeed(_stepsPerDeg * speed); }
+    
+    // получение целевой скорости в шагах/секунду
     float getSpeed() 				{ return (1000000.0 / stepTime * _dir); }
+    
+    // получение целевой скорости в градусах/секунду
     float getSpeedDeg() 			{ return ((float)getSpeed() / _stepsPerDeg); }
 
     // установка режима работы
@@ -416,6 +434,7 @@ public:
     // включить мотор
     void enable() {
         _workState = true;
+        _stopSpeed = 0;
         resetTimers();
         if (!_powerState) {
             _powerState = true;            
@@ -423,7 +442,7 @@ public:
                 if (_TYPE == STEPPER_PINS) {
                     // подадим прошлый сигнал на мотор, чтобы вал зафиксировался
                     if (_DRV == STEPPER4WIRE || _DRV == STEPPER4WIRE_HALF) step();	
-                    if (_enPin != -1) digitalWrite(_enPin, _enDir);
+                    if (_enPin != 255) digitalWrite(_enPin, _enDir);
                 } else if (*_power) _power(1);
             }
         }
@@ -432,6 +451,8 @@ public:
     // выключить мотор
     void disable() {
         _workState = false;
+        _stopSpeed = 0;
+        resetMotor();
         if (_powerState) {
             _powerState = false;
             if (_autoPower) {
@@ -442,7 +463,7 @@ public:
                         setPin(2, 0);
                         setPin(3, 0);
                     }
-                    if (_enPin != -1) digitalWrite(_enPin, !_enDir);
+                    if (_enPin != 255) digitalWrite(_enPin, !_enDir);
                 } else if (*_power) _power(0);
             }
         }
@@ -464,6 +485,13 @@ public:
     void attachPower(void (*handler)(bool)) 	{ _power = handler; }
 
 private:
+    // сброс перемещения
+    void resetMotor() {
+        _accelSpeed = 0;
+        #ifdef SMOOTH_ALGORITHM
+        _n = 0;
+        #endif	
+    }
     // аккуратно сбросить все таймеры
     void resetTimers() {
         uint32_t us = micros();
@@ -477,7 +505,7 @@ private:
     }
     
     // настройка пина
-    void configurePin(int num, int8_t pin) {
+    void configurePin(int num, uint8_t pin) {
         #ifdef __AVR__
         _port_reg[num] = portOutputRegister(digitalPinToPort(pin));
         _ddr_reg[num] = portModeRegister(digitalPinToPort(pin));
@@ -614,7 +642,8 @@ private:
             long err = _target - _current;											// "ошибка"
             bool thisDir = ( _accelSpeed * _accelSpeed * _accelInv >= abs(err) );	// пора тормозить
             _accelSpeed += ( _accelTime * _plannerPrd * (thisDir ? -_sign(_accelSpeed) : _sign(err)) );	// разгон/торможение
-            _accelSpeed = constrain(_accelSpeed, -_maxSpeed, _maxSpeed);			// ограничение
+            if (_stopSpeed == 0) _accelSpeed = constrain(_accelSpeed, -_maxSpeed, _maxSpeed);   // ограничение
+            else _accelSpeed = constrain(_accelSpeed, -_stopSpeed, _stopSpeed);
 
             if (abs(_accelSpeed) > _MIN_SPEED_FP) stepTime = abs(1000000.0 / _accelSpeed);		// ограничение на мин. скорость
             else stepTime = _MAX_PERIOD_FP;
@@ -652,7 +681,7 @@ private:
     }	
 
     const float _stepsPerDeg;
-    int8_t _enPin = -1;
+    int8_t _enPin = 255;
     uint32_t _prevTime = 0;			
     float _accelSpeed = 0;
     int32_t _current = 0;
@@ -666,6 +695,8 @@ private:
     bool _workState = false;
     bool _autoPower = false;
     bool _smoothStart = false;
+    
+    float _stopSpeed = 0;
 
     float _maxSpeed = 300;
     float _speed = 0;
