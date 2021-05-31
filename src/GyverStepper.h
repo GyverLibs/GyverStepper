@@ -497,15 +497,8 @@ private:
         #endif	
     }
     // аккуратно сбросить все таймеры
-    void resetTimers() {
-        uint32_t us = micros();
-        if (_curMode) {
-            if (us - _smoothPlannerTime >= _smoothPlannerPrd) _smoothPlannerTime += _smoothPlannerPrd * ((us - _smoothPlannerTime) / _smoothPlannerPrd);
-        } else {
-            if (us - _plannerTime >= _plannerPrd) _plannerTime += _plannerPrd * ((us - _plannerTime) / _plannerPrd);
-            if (us - _prevTime >= stepTime) _prevTime += stepTime * ((us - _prevTime) / stepTime);
-        }
-        //_smoothPlannerTime = _plannerTime = _prevTime = micros();        
+    void resetTimers() {        
+        _smoothPlannerTime = _plannerTime = _prevTime = micros();        
     }
     
     // настройка пина
