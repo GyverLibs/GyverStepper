@@ -228,6 +228,7 @@ public:
         // умолчания
         setMaxSpeed(300);
         setAcceleration(300);
+        if (_enPin != 255) digitalWrite(_enPin, _enDir);
     }
     
     // тикер, вызывать почаще. Возвращает true, если мотор всё ещё движется к цели
@@ -276,7 +277,10 @@ public:
     void reverse(bool dir) 			{ _globDir = dir; }
 
     // инвертировать поведение EN пина
-    void invertEn(bool dir) 		{ _enDir = dir; }
+    void invertEn(bool dir) {
+        _enDir = dir;
+        if (!_autoPower && _enPin != 255) digitalWrite(_enPin, _enDir);
+    }
 
     // установка текущей позиции в шагах
     void setCurrent(long pos) 		{ _current = pos; _accelSpeed = 0; }
@@ -438,8 +442,7 @@ public:
         _stopSpeed = 0;
         resetTimers();
         if (!_powerState) {
-            _powerState = true;
-            if (_enPin != 255) digitalWrite(_enPin, _enDir);
+            _powerState = true;            
             if (_autoPower) {
                 if (_TYPE == STEPPER_PINS) {
                     // подадим прошлый сигнал на мотор, чтобы вал зафиксировался
