@@ -38,6 +38,7 @@
     v1.13 - исправлены мелкие баги, оптимизация
     v1.14 - исправлены ошибки разгона и торможения в KEEP_SPEED
     v1.15 - оптимизация, исправлены мелкие баги, stop() больше не сбрасывает maxSpeed
+    v1.15.2 - добавил включение EN если указан, даже при отключенном autoPower
 */
 
 /*
@@ -437,7 +438,8 @@ public:
         _stopSpeed = 0;
         resetTimers();
         if (!_powerState) {
-            _powerState = true;            
+            _powerState = true;
+            if (_enPin != 255) digitalWrite(_enPin, _enDir);
             if (_autoPower) {
                 if (_TYPE == STEPPER_PINS) {
                     // подадим прошлый сигнал на мотор, чтобы вал зафиксировался
@@ -613,7 +615,7 @@ private:
 
         if (_n == 0) {
             _cn = _c0;
-            _dir = _sign(err);;
+            _dir = _sign(err);
         } else {
             _cn = _cn - ((2.0 * _cn) / ((4.0 * _n) + 1));
             _cn = max(_cn, _cmin); 
@@ -703,8 +705,8 @@ private:
 
     GS_runMode _curMode = FOLLOW_POS;
     
-    void (*_step)(uint8_t a) = NULL;
-    void (*_power)(bool a) = NULL;
+    void (*_step)(uint8_t a) = nullptr;
+    void (*_power)(bool a) = nullptr;
 
 #ifdef __AVR__
     volatile uint8_t *_port_reg[_PINS_AMOUNT];
