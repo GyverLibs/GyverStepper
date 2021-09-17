@@ -166,54 +166,54 @@ void attachPower(handler)
 <details>
   <summary>Example</summary>
 Остальные примеры смотри в **examples**!
-```cpp
-#include <GyverStepper.h>
-GStepper<STEPPER4WIRE> stepper(2048, 5, 3, 4, 2);
+    ```cpp
+    #include <GyverStepper.h>
+    GStepper<STEPPER4WIRE> stepper(2048, 5, 3, 4, 2);
 
-void setup() {
-  Serial.begin(115200);
-  // режим поддержания скорости
-  stepper.setRunMode(KEEP_SPEED);
+    void setup() {
+      Serial.begin(115200);
+      // режим поддержания скорости
+      stepper.setRunMode(KEEP_SPEED);
 
-  // можно установить скорость
-  stepper.setSpeed(120);    // в шагах/сек
-  stepper.setSpeedDeg(80);  // в градусах/сек
+      // можно установить скорость
+      stepper.setSpeed(120);    // в шагах/сек
+      stepper.setSpeedDeg(80);  // в градусах/сек
 
-  // режим следования к целевй позиции
-  stepper.setRunMode(FOLLOW_POS);
+      // режим следования к целевй позиции
+      stepper.setRunMode(FOLLOW_POS);
 
-  // можно установить позицию
-  stepper.setTarget(-2024);    // в шагах
-  stepper.setTargetDeg(-360);  // в градусах
+      // можно установить позицию
+      stepper.setTarget(-2024);    // в шагах
+      stepper.setTargetDeg(-360);  // в градусах
 
-  // установка макс. скорости в градусах/сек
-  stepper.setMaxSpeedDeg(400);
-  
-  // установка макс. скорости в шагах/сек
-  stepper.setMaxSpeed(400);
+      // установка макс. скорости в градусах/сек
+      stepper.setMaxSpeedDeg(400);
+      
+      // установка макс. скорости в шагах/сек
+      stepper.setMaxSpeed(400);
 
-  // установка ускорения в градусах/сек/сек
-  stepper.setAccelerationDeg(300);
+      // установка ускорения в градусах/сек/сек
+      stepper.setAccelerationDeg(300);
 
-  // установка ускорения в шагах/сек/сек
-  stepper.setAcceleration(300);
+      // установка ускорения в шагах/сек/сек
+      stepper.setAcceleration(300);
 
-  // отключать мотор при достижении цели
-  stepper.autoPower(true);
+      // отключать мотор при достижении цели
+      stepper.autoPower(true);
 
-  // включить мотор (если указан пин en)
-  stepper.enable();
-}
+      // включить мотор (если указан пин en)
+      stepper.enable();
+    }
 
-void loop() {
-  // просто крутим туды-сюды
-  if (!stepper.tick()) {
-    static bool dir;
-    dir = !dir;
-    stepper.setTarget(dir ? -1024 : 1024);
-  }
-}
-```
+    void loop() {
+      // просто крутим туды-сюды
+      if (!stepper.tick()) {
+        static bool dir;
+        dir = !dir;
+        stepper.setTarget(dir ? -1024 : 1024);
+      }
+    }
+    ```
 </details>
 
 123
