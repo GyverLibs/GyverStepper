@@ -154,6 +154,14 @@ void attachPower(handler)
 ```
 
 ### Пример (GyverStepper)
+1. First item with a hidden code block
+<details>
+  <summary>Example</summary>
+
+  ```
+  long console output here
+  ```
+</details>
 <details>
   <summary>РАЗВЕРНУТЬ</summary>
 Остальные примеры смотри в **examples**!
