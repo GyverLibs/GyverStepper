@@ -6,7 +6,14 @@
 # Datatypes (KEYWORD1)
 #######################################
 GyverStepper	KEYWORD1
+GyverPlanner	KEYWORD1
+GyverPlanner2	KEYWORD1
+StepperCore	KEYWORD1
+
 GStepper	KEYWORD1
+GPlanner	KEYWORD1
+GPlanner2	KEYWORD1
+Stepper	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -44,6 +51,22 @@ degPerMinute	KEYWORD2
 degPerHour	KEYWORD2
 attachStep	KEYWORD2
 attachPower	KEYWORD2
+
+step	KEYWORD2
+
+addStepper	KEYWORD2
+ready	KEYWORD2
+pause	KEYWORD2
+resume	KEYWORD2
+tickManual	KEYWORD2
+getPeriod	KEYWORD2
+getStatus	KEYWORD2
+
+checkBuffer	KEYWORD2
+addTarget	KEYWORD2
+available	KEYWORD2
+setDtA	KEYWORD2
+start	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
