@@ -158,7 +158,7 @@ void attachPower(handler)
 <summary>РАЗВЕРНУТЬ</summary>
 <p>
 Остальные примеры смотри в **examples**!
-```cpp
+```C
 #include <GyverStepper.h>
 GStepper<STEPPER4WIRE> stepper(2048, 5, 3, 4, 2);
 
