@@ -20,33 +20,6 @@
 ### Совместимость
 Совместима со всеми Arduino платформами (используются Arduino-функции)
 
-1. First item with a hidden code block
-<details>
-  <summary>Example</summary>
-
-  ```
-  long console output here
-  ```
-</details>
-
-2. Second item with a hidden code block
-<details>
-  <summary>Example</summary>
-
-  ```
-  long console output here
-  ```
-</details>
-
-3. Third item with a hidden code block
-<details>
-  <summary>Example</summary>
-
-  ```
-  long console output here
-  ```
-</details>
-
 ### Документация
 К библиотеке есть [расширенная документация](https://alexgyver.ru/GyverStepper/)
 
@@ -183,7 +156,6 @@ void attachPower(handler)
 ### Пример (GyverStepper)
 <details>
 <summary>РАЗВЕРНУТЬ</summary>
-<p>
 Остальные примеры смотри в **examples**!
 ```cpp
 #include <GyverStepper.h>
@@ -233,7 +205,6 @@ void loop() {
   }
 }
 ```
-</p>
 </details>
 
 ---
@@ -367,7 +338,6 @@ bool tickManual();
 ### Пример (GyverPlanner)
 <details>
 <summary>РАЗВЕРНУТЬ</summary>
-<p>
 Остальные примеры смотри в **examples**!
 ```cpp
 // базовый пример: как создать и запустить планировщик
@@ -426,7 +396,6 @@ void loop() {
   }
 }
 ```
-</p>
 </details>
 
 <a id="planner2"></a>
@@ -522,7 +491,6 @@ void checkBuffer();
 ### Пример (GyverPlanner2)
 <details>
 <summary>РАЗВЕРНУТЬ</summary>
-<p>
 Остальные примеры смотри в **examples**!
 ```cpp
 // пример с записанным в памяти маршрутом
@@ -582,7 +550,6 @@ void loop() {
   }
 }
 ```
-</p>
 </details>
 
 <a id="versions"></a>
