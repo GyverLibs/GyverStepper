@@ -162,8 +162,9 @@ void attachPower(handler)
   long console output here
   ```
 </details>
+
 <details>
-  <summary>РАЗВЕРНУТЬ</summary>
+  <summary>Example</summary>
 Остальные примеры смотри в **examples**!
 ```cpp
 #include <GyverStepper.h>
