@@ -20,6 +20,33 @@
 ### Совместимость
 Совместима со всеми Arduino платформами (используются Arduino-функции)
 
+1. First item with a hidden code block
+<details>
+  <summary>Example</summary>
+
+  ```
+  long console output here
+  ```
+</details>
+
+2. Second item with a hidden code block
+<details>
+  <summary>Example</summary>
+
+  ```
+  long console output here
+  ```
+</details>
+
+3. Third item with a hidden code block
+<details>
+  <summary>Example</summary>
+
+  ```
+  long console output here
+  ```
+</details>
+
 ### Документация
 К библиотеке есть [расширенная документация](https://alexgyver.ru/GyverStepper/)
 
@@ -158,7 +185,7 @@ void attachPower(handler)
 <summary>РАЗВЕРНУТЬ</summary>
 <p>
 Остальные примеры смотри в **examples**!
-```C
+```cpp
 #include <GyverStepper.h>
 GStepper<STEPPER4WIRE> stepper(2048, 5, 3, 4, 2);
 
