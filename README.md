@@ -155,7 +155,7 @@ void attachPower(handler)
 
 ### Пример (GyverStepper)
 <details>
-<summary>РАЗВЕРНУТЬ</summary>
+  <summary>РАЗВЕРНУТЬ</summary>
 Остальные примеры смотри в **examples**!
 ```cpp
 #include <GyverStepper.h>
@@ -207,7 +207,6 @@ void loop() {
 ```
 </details>
 
----
 
 <a id="core"></a>
 ## StepperCore
@@ -337,7 +336,7 @@ bool tickManual();
 
 ### Пример (GyverPlanner)
 <details>
-<summary>РАЗВЕРНУТЬ</summary>
+  <summary>РАЗВЕРНУТЬ</summary>
 Остальные примеры смотри в **examples**!
 ```cpp
 // базовый пример: как создать и запустить планировщик
@@ -490,7 +489,7 @@ void checkBuffer();
 
 ### Пример (GyverPlanner2)
 <details>
-<summary>РАЗВЕРНУТЬ</summary>
+  <summary>РАЗВЕРНУТЬ</summary>
 Остальные примеры смотри в **examples**!
 ```cpp
 // пример с записанным в памяти маршрутом
