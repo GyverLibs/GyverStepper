@@ -256,11 +256,13 @@ int8_t dir;                                 // направление (1, -1)
 Stepper<STEPPER2WIRE> stepper(2, 3);
 
 void setup() {
+  stepper.dir = 1;  // или -1
+  stepper.pos = 0;  // доступ к позиции
 }
 
 void loop() {
   // крутим вручную
-  stepper.step();
+  stepper.step();   // сделать шаг
   delay(10);
 }
 ```
