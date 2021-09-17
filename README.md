@@ -209,6 +209,8 @@ void loop() {
 </p>
 </details>
 
+---
+
 <a id="core"></a>
 ## StepperCore
 ### Описание
