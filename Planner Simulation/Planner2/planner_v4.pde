@@ -110,7 +110,7 @@ class Planner_v4 {
     if (status > 1 && millis() - tmr >= us/1000) {
       tmr = millis(); 
       tickManual();
-      
+
       // ВЫВОД МАРШРУТА
       int vel = us==0 ? 0 : 1000000/us;
       int hue = int(map(vel, 0, V, 0, 70));
@@ -220,7 +220,10 @@ class Planner_v4 {
       bufS.set(i, s1);
 
       if (bufL.get(i + 1) == 1) break;
-      
+      if (a == 0) {
+        bufV.set(i + 1, int(V));
+        continue;
+      }
 
       if (i < bufV.available() - 2) {        
         int multSum = 0;

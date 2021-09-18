@@ -307,8 +307,12 @@ public:
             }
             uint32_t s1 = sqrt(sqSum);
             bufS.set(i, s1);
-            if (s1 == 0) continue;
             if (bufL.get(i + 1) == 1) break;
+            if (a == 0) {
+                bufV.set(i + 1, uint16_t(V));
+                continue;
+            }
+            if (s1 == 0) continue;
 
             if (i < bufV.available() - 2) {
                 int32_t multSum = 0;
