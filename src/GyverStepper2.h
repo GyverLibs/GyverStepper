@@ -49,6 +49,8 @@
     // вращение
     void setSpeed(int16_t speed);               // установить скорость в шагах/сек и запустить вращение
     void setSpeed(float speed);                 // установить скорость в шагах/сек (float) и запустить вращение
+    void setSpeedDeg(int16_t speed);            // установить скорость в градусах/сек и запустить вращение
+    void setSpeedDeg(float speed);              // установить скорость в градусах/сек (float) и запустить вращение
     
     // движение к цели
     void setTarget(int32_t ntar, GS_posType type = ABSOLUTE);       // установить цель в шагах и опционально режим ABSOLUTE/RELATIVE
@@ -161,6 +163,7 @@ public:
         status = 3;
         return 1;
     }
+    
     #ifndef ESP8266
     void setSpeed(int speed) {
         setSpeed((int32_t)speed);
@@ -168,8 +171,16 @@ public:
     #endif
     
     // установить скорость вращения float
-    void setSpeed(float speed) {
+    void setSpeed(double speed) {
         if (setSpeed((int32_t)speed)) us = 1000000.0 / abs(speed);
+    }
+    
+    void setSpeedDeg(int speed) {
+        setSpeed((int32_t)speed * stepsRev / 360L);
+    }
+    
+    void setSpeedDeg(double speed) {
+        setSpeed((float)speed * stepsRev / 360L);
     }
     
     // =========================== POSITION MODE ===========================
@@ -223,7 +234,7 @@ public:
     }
     
     // установить цель в градусах float и опционально режим
-    void setTargetDeg(float ntar, GS_posType type = ABSOLUTE) {
+    void setTargetDeg(double ntar, GS_posType type = ABSOLUTE) {
         setTarget((float)ntar * stepsRev / 360.0, type);
     }
     
