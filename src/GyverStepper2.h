@@ -161,9 +161,11 @@ public:
         status = 3;
         return 1;
     }
-    void setSpeed(int16_t speed) {
+    #ifndef ESP8266
+    void setSpeed(int speed) {
         setSpeed((int32_t)speed);
     }
+    #endif
     
     // установить скорость вращения float
     void setSpeed(float speed) {
