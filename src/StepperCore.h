@@ -10,31 +10,31 @@
 */
 
 /*
-// ============ КЛАСС ============
-// настроить пины
-void setPins(uint8_t pin1 = 255, uint8_t pin2 = 255, uint8_t pin3 = 255, uint8_t pin4 = 255, uint8_t pin5 = 255);
+    // ======== ИНИЦИАЛИЗАЦИЯ ========
+    Stepper<STEPPER2WIRE> stepper(step, dir);						// драйвер step-dir
+    Stepper<STEPPER2WIRE> stepper(step, dir, en);					// драйвер step-dir + пин enable
+    Stepper<STEPPER4WIRE> stepper(pin1, pin2, pin3, pin4);			// драйвер 4 пин
+    Stepper<STEPPER4WIRE> stepper(pin1, pin2, pin3, pin4, en);		// драйвер 4 пин + enable
+    Stepper<STEPPER4WIRE_HALF> stepper(pin1, pin2, pin3, pin4);		// драйвер 4 пин полушаг
+    Stepper<STEPPER4WIRE_HALF> stepper(pin1, pin2, pin3, pin4, en);	// драйвер 4 пин полушаг + enable
 
-void step();                                // сделать шаг
-void invertEn(bool val);                    // инвертировать поведение EN пина
-void reverse(bool val);                     // инвертировать направление мотора
-void disable();                             // отключить питание и EN
-void enable();                              // включить питание и EN
-void attachStep(void (*handler)(uint8_t));  // подключить обработчик шага
-void attachPower(void (*handler)(bool));    // подключить обработчик питания
+    Stepper<STEPPER2WIRE, STEPPER_VIRTUAL> stepper;					// виртуальный драйвер step-dir
+    Stepper<STEPPER4WIRE, STEPPER_VIRTUAL> stepper;					// виртуальный драйвер 4 пин
 
-int32_t pos;                                // текущая позиция в шагах
-int8_t dir;                                 // направление (1, -1)
+    // ============ КЛАСС ============
+    // настроить пины
+    void setPins(uint8_t pin1 = 255, uint8_t pin2 = 255, uint8_t pin3 = 255, uint8_t pin4 = 255, uint8_t pin5 = 255);
 
-// ======== ИНИЦИАЛИЗАЦИЯ ========
-Stepper<STEPPER2WIRE> stepper(step, dir);						// драйвер step-dir
-Stepper<STEPPER2WIRE> stepper(step, dir, en);					// драйвер step-dir + пин enable
-Stepper<STEPPER4WIRE> stepper(pin1, pin2, pin3, pin4);			// драйвер 4 пин
-Stepper<STEPPER4WIRE> stepper(pin1, pin2, pin3, pin4, en);		// драйвер 4 пин + enable
-Stepper<STEPPER4WIRE_HALF> stepper(pin1, pin2, pin3, pin4);		// драйвер 4 пин полушаг
-Stepper<STEPPER4WIRE_HALF> stepper(pin1, pin2, pin3, pin4, en);	// драйвер 4 пин полушаг + enable
+    void step();                                // сделать шаг
+    void invertEn(bool val);                    // инвертировать поведение EN пина
+    void reverse(bool val);                     // инвертировать направление мотора
+    void disable();                             // отключить питание и EN
+    void enable();                              // включить питание и EN
+    void attachStep(void (*handler)(uint8_t));  // подключить обработчик шага
+    void attachPower(void (*handler)(bool));    // подключить обработчик питания
 
-Stepper<STEPPER2WIRE, STEPPER_VIRTUAL> stepper;					// виртуальный драйвер step-dir
-Stepper<STEPPER4WIRE, STEPPER_VIRTUAL> stepper;					// виртуальный драйвер 4 пин
+    int32_t pos;                                // текущая позиция в шагах
+    int8_t dir;                                 // направление (1, -1)
 */
 
 #ifndef _StepperCore_h

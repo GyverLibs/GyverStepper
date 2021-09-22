@@ -40,6 +40,7 @@
     v1.15 - оптимизация, исправлены мелкие баги, stop() больше не сбрасывает maxSpeed
     v1.15.2 - добавил включение EN если указан, даже при отключенном autoPower
     v2.0 - оптимизация. Ядро шаговика вынесено в отдельный класс Stepper. Добавлены многоосевые планировщики траекторий
+    v2.1 - добавил GyverStepper2, упрощённая и оптимизированная версия GyverStepper
 */
 
 /*
@@ -157,8 +158,8 @@ void attachPower(handler)
 // Также дефайн можно прописать в скетче до подключения библиотеки!!! См. пример smoothAlgorithm
 //#define SMOOTH_ALGORITHM
 
-#ifndef GyverStepper_h
-#define GyverStepper_h
+#ifndef _GyverStepper_h
+#define _GyverStepper_h
 #include <Arduino.h>
 #include "GStypes.h"
 #include "StepperCore.h"
