@@ -302,12 +302,12 @@ void loop() {
 
 ### Инициализация
 ```cpp
-GStepper2<STEPPER2WIRE> stepper(шаговНаОборот, step, dir);						 // драйвер step-dir
-GStepper2<STEPPER2WIRE> stepper(шаговНаОборот, step, dir, en);					 // драйвер step-dir + пин enable
-GStepper2<STEPPER4WIRE> stepper(шаговНаОборот, pin1, pin2, pin3, pin4);			 // драйвер 4 пин
-GStepper2<STEPPER4WIRE> stepper(шаговНаОборот, pin1, pin2, pin3, pin4, en);		 // драйвер 4 пин + enable
-GStepper2<STEPPER4WIRE_HALF> stepper(шаговНаОборот, pin1, pin2, pin3, pin4);     // драйвер 4 пин полушаг
-GStepper2<STEPPER4WIRE_HALF> stepper(шаговНаОборот, pin1, pin2, pin3, pin4, en); // драйвер 4 пин полушаг + enable
+GStepper2<STEPPER2WIRE> stepper(шаговНаОборот, step, dir);                          // драйвер step-dir
+GStepper2<STEPPER2WIRE> stepper(шаговНаОборот, step, dir, en);                      // драйвер step-dir + пин enable
+GStepper2<STEPPER4WIRE> stepper(шаговНаОборот, pin1, pin2, pin3, pin4);             // драйвер 4 пин
+GStepper2<STEPPER4WIRE> stepper(шаговНаОборот, pin1, pin2, pin3, pin4, en);         // драйвер 4 пин + enable
+GStepper2<STEPPER4WIRE_HALF> stepper(шаговНаОборот, pin1, pin2, pin3, pin4);        // драйвер 4 пин полушаг
+GStepper2<STEPPER4WIRE_HALF> stepper(шаговНаОборот, pin1, pin2, pin3, pin4, en);    // драйвер 4 пин полушаг + enable
 
 GStepper2<STEPPER2WIRE, STEPPER_VIRTUAL> stepper;    // виртуальный драйвер step-dir
 GStepper2<STEPPER4WIRE, STEPPER_VIRTUAL> stepper;    // виртуальный драйвер 4 пин
