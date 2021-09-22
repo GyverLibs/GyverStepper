@@ -283,7 +283,7 @@ void loop() {
 ```
 </details>
 
-<a id="stepper"></a>
+<a id="stepper2"></a>
 ## GyverStepper2
 ### Описание
 Облегчённая GyverStepper
