@@ -41,6 +41,7 @@
     v1.15.2 - добавил включение EN если указан, даже при отключенном autoPower
     v2.0 - оптимизация. Ядро шаговика вынесено в отдельный класс Stepper. Добавлены многоосевые планировщики траекторий
     v2.1 - добавил GyverStepper2, упрощённая и оптимизированная версия GyverStepper
+    v2.1.1 - исправлена бага в GyverStepper
 */
 
 /*
@@ -188,12 +189,12 @@ enum GS_smoothType {
 
 // ============================== GS CLASS ==============================
 template <GS_driverType _DRV, GS_driverType _TYPE = STEPPER_PINS>
-class GStepper {
+class GStepper : public Stepper<_DRV, _TYPE> {
 public:	
     // конструктор
     GStepper(int stepsPerRev, uint8_t pin1 = 255, uint8_t pin2 = 255, uint8_t pin3 = 255, uint8_t pin4 = 255, uint8_t pin5 = 255) : 
     _stepsPerDeg(stepsPerRev / 360.0) {
-        stp.setPins(pin1, pin2, pin3, pin4, pin5);
+        setPins(pin1, pin2, pin3, pin4, pin5);
         // умолчания
         setMaxSpeed(300);
         setAcceleration(300);
@@ -222,30 +223,21 @@ public:
                 #endif
                 
                 // проверка остановки для быстрого планировщика, а также работы без ускорения
-                if (!_curMode && _target == stp.pos) {
+                if (!_curMode && _target == pos) {
                     brake();
                     return false;
                 }
-                stp.step();     // двигаем мотор
+                step();     // двигаем мотор
             }
         }
         return _workState;
     }    
     
     // ============================== SETTINGS ==============================
-    // инвертировать направление мотора
-    void reverse(bool dir) {
-        stp.reverse(dir);
-    }
-
-    // инвертировать поведение EN пина
-    void invertEn(bool dir) {
-        stp.invertEn(dir);
-    }
 
     // установка текущей позиции в шагах
-    void setCurrent(long pos) {
-        stp.pos = pos;
+    void setCurrent(long npos) {
+        pos = npos;
         _accelSpeed = 0;
     }
     
@@ -256,21 +248,21 @@ public:
     
     // чтение текущей позиции в шагах
     long getCurrent() {
-        return stp.pos;
+        return pos;
     }
     
     // чтение текущей позиции в градусах
     float getCurrentDeg() {
-        return ((float)stp.pos / _stepsPerDeg);
+        return ((float)pos / _stepsPerDeg);
     }
 
     // установка целевой позиции в шагах
     void setTarget(long pos, GS_posType type = ABSOLUTE) {
-        _target = type ? (stp.pos + pos) : pos;		
-        if (_target != stp.pos) {
+        _target = type ? (pos + pos) : pos;		
+        if (_target != pos) {
             if (_accel == 0 || _maxSpeed < _MIN_SPEED_FP) {
                 stepTime = 1000000.0 / _maxSpeed;
-                stp.dir = (_target > stp.pos) ? 1 : -1;
+                dir = (_target > pos) ? 1 : -1;
             }
             enable();
         }
@@ -343,8 +335,8 @@ public:
         if (_workState) {
             resetTimers();
             if (_curMode == FOLLOW_POS) {
-                _accelSpeed = 1000000.0f / stepTime * stp.dir;
-                setTarget(stp.pos + (float)_accelSpeed * _accelSpeed * _accelInv * stp.dir);
+                _accelSpeed = 1000000.0f / stepTime * dir;
+                setTarget(pos + (float)_accelSpeed * _accelSpeed * _accelInv * dir);
                 //setMaxSpeed(abs(_accelSpeed));
                 _stopSpeed = abs(_accelSpeed);
                 #ifdef SMOOTH_ALGORITHM
@@ -389,7 +381,7 @@ public:
             }	
             _accelSpeed = _speed;
             stepTime = round(1000000.0 / abs(_speed));
-            stp.dir = (_speed > 0) ? 1 : -1;
+            dir = (_speed > 0) ? 1 : -1;
         }        
     }
     
@@ -400,7 +392,7 @@ public:
     
     // получение целевой скорости в шагах/секунду
     float getSpeed() {
-        return (1000000.0 / stepTime * stp.dir);
+        return (1000000.0 / stepTime * dir);
     }
     
     // получение целевой скорости в градусах/секунду
@@ -425,12 +417,7 @@ public:
         _workState = true;
         _stopSpeed = 0;
         resetTimers();
-        stp.enable();
-    }
-    
-    // выключить мотор
-    void disable() {
-        stp.disable();
+        Stepper<_DRV, _TYPE>::enable();
     }
     
     // резкая остановка
@@ -454,18 +441,15 @@ public:
     // время между шагами
     uint32_t stepTime = 10000;
     
-    // подключить обработчик шага
-    void attachStep(void (*handler)(uint8_t)) {
-        stp.attachStep(handler);
-    }
-    
-    // подключить обработчик питания
-    void attachPower(void (*handler)(bool)) {
-        stp.attachPower(handler);
-    }
-
     // ========================= PRIVATE ==========================
 private:
+    using Stepper<_DRV, _TYPE>::pos;
+    using Stepper<_DRV, _TYPE>::dir;
+    using Stepper<_DRV, _TYPE>::setPins;
+    using Stepper<_DRV, _TYPE>::step;
+    using Stepper<_DRV, _TYPE>::enable;
+    using Stepper<_DRV, _TYPE>::disable;
+    
     // сброс перемещения
     void resetMotor() {
         _accelSpeed = 0;
@@ -483,32 +467,32 @@ private:
     // ========================= PLANNER 1 =========================
     // планировщик скорости из AccelStepper
     bool plannerSmooth() {		
-        long err = _target - stp.pos;
+        long err = _target - pos;
         long stepsToStop = (float)_accelSpeed * _accelSpeed * _accelInv;
         
         if (err == 0 && stepsToStop <= 1) return false;
 
         if (err > 0) {
             if (_n > 0) {
-                if ((stepsToStop >= err) || stp.dir == -1)
+                if ((stepsToStop >= err) || dir == -1)
                 _n = -stepsToStop;
             } else if (_n < 0) {
-                if ((stepsToStop < err) && stp.dir == 1)
+                if ((stepsToStop < err) && dir == 1)
                 _n = -_n;
             }
         } else if (err < 0) {
             if (_n > 0) {
-                if ((stepsToStop >= -err) || stp.dir == 1)
+                if ((stepsToStop >= -err) || dir == 1)
                 _n = -stepsToStop;
             } else if (_n < 0) {
-                if ((stepsToStop < -err) && stp.dir == -1)
+                if ((stepsToStop < -err) && dir == -1)
                 _n = -_n;
             }
         }
 
         if (_n == 0) {
             _cn = _c0;
-            stp.dir = _sign(err);
+            dir = _sign(err);
         } else {
             _cn = _cn - ((2.0 * _cn) / ((4.0 * _n) + 1));
             _cn = max(_cn, _cmin); 
@@ -516,7 +500,7 @@ private:
         _n++;
         stepTime = _cn;
         _accelSpeed = 1000000.0 / _cn;
-        if (stp.dir == -1) _accelSpeed = -_accelSpeed;	
+        if (dir == -1) _accelSpeed = -_accelSpeed;	
         return true;
     }
     
@@ -531,7 +515,7 @@ private:
         if (tickUs - _plannerTime >= _plannerPrd) {
             _plannerTime += _plannerPrd;
             // ~110 us				
-            long err = _target - stp.pos;											// "ошибка"
+            long err = _target - pos;											// "ошибка"
             bool thisDir = ( _accelSpeed * _accelSpeed * _accelInv >= abs(err) );	// пора тормозить
             _accelSpeed += ( _accelTime * _plannerPrd * (thisDir ? -_sign(_accelSpeed) : _sign(err)) );	// разгон/торможение
             if (_stopSpeed == 0) _accelSpeed = constrain(_accelSpeed, -_maxSpeed, _maxSpeed);   // ограничение
@@ -539,7 +523,7 @@ private:
 
             if (abs(_accelSpeed) > _MIN_SPEED_FP) stepTime = abs(1000000.0 / _accelSpeed);		// ограничение на мин. скорость
             else stepTime = _MAX_PERIOD_FP;
-            stp.dir = _sign(_accelSpeed);												// направление для шагов
+            dir = _sign(_accelSpeed);												// направление для шагов
         }
     }
 
@@ -558,7 +542,7 @@ private:
             _smoothPlannerTime = tickUs;
             int8_t dir = _sign(_speed - _accelSpeed);	// 1 - разгон, -1 - торможение
             _accelSpeed += (_accelTime * _smoothPlannerPrd * dir);			
-            stp.dir = _sign(_accelSpeed);
+            dir = _sign(_accelSpeed);
             
             // прекращение работы планировщика
             if ((dir == 1 && _accelSpeed >= _speed) || (dir == -1 && _accelSpeed <= _speed)) {
@@ -574,7 +558,6 @@ private:
     }
     
     // ========================= VARIABLES =========================
-    Stepper<_DRV, _TYPE> stp;
     const float _stepsPerDeg;
     uint32_t _prevTime = 0;
     float _accelSpeed = 0;
