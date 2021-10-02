@@ -42,6 +42,10 @@
 #include <Arduino.h>
 #include "GStypes.h"
 
+#ifndef nullptr
+#define nullptr NULL
+#endif
+
 #ifndef DRIVER_STEP_TIME
 #define DRIVER_STEP_TIME 4
 #endif
