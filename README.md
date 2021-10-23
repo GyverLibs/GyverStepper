@@ -729,6 +729,7 @@ void loop() {
 - v2.1 - добавил GyverStepper2, упрощённая и оптимизированная версия GyverStepper
 - v2.1.1 - исправлена бага в GyverStepper
 - v2.1.2 - совместимость Digispark
+- v2.1.3 - починил FOLLOW_POS в GStepper, починил RELATIVE в GPlanner2 и исправил багу с рывками
 
 <a id="feedback"></a>
 ## Баги и обратная связь

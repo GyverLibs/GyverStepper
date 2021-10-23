@@ -14,10 +14,6 @@
     AlexGyver, alex@alexgyver.ru
     https://alexgyver.ru/
     MIT License
-    
-    Версии:
-    v1.0
-    v1.1 - небольшие фиксы
 */
 
 /*

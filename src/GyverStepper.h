@@ -43,6 +43,7 @@
     v2.1 - добавил GyverStepper2, упрощённая и оптимизированная версия GyverStepper
     v2.1.1 - исправлена бага в GyverStepper
     v2.1.2 - совместимость Digispark
+    v2.1.3 - починил FOLLOW_POS в GStepper, починил RELATIVE в GPlanner2 и исправил багу с рывками
 */
 
 /*
@@ -182,7 +183,6 @@ enum GS_runMode {
     KEEP_SPEED,
 };
 
-
 enum GS_smoothType {	
     NO_SMOOTH,
     SMOOTH,
@@ -243,8 +243,8 @@ public:
     }
     
     // установка текущей позиции в градусах
-    void setCurrentDeg(float pos) {
-        setCurrent((float)pos * _stepsPerDeg);
+    void setCurrentDeg(float npos) {
+        setCurrent((float)npos * _stepsPerDeg);
     }
     
     // чтение текущей позиции в шагах
@@ -258,8 +258,8 @@ public:
     }
 
     // установка целевой позиции в шагах
-    void setTarget(long pos, GS_posType type = ABSOLUTE) {
-        _target = type ? (pos + pos) : pos;		
+    void setTarget(long npos, GS_posType type = ABSOLUTE) {
+        _target = type ? (npos + pos) : npos;
         if (_target != pos) {
             if (_accel == 0 || _maxSpeed < _MIN_SPEED_FP) {
                 stepTime = 1000000.0 / _maxSpeed;
@@ -270,8 +270,8 @@ public:
     }
     
     // установка целевой позиции в градусах
-    void setTargetDeg(float pos, GS_posType type = ABSOLUTE) {
-        setTarget((float)pos * _stepsPerDeg, type);
+    void setTargetDeg(float npos, GS_posType type = ABSOLUTE) {
+        setTarget((float)npos * _stepsPerDeg, type);
     }
     
     // получение целевой позиции в шагах
@@ -516,7 +516,7 @@ private:
         if (tickUs - _plannerTime >= _plannerPrd) {
             _plannerTime += _plannerPrd;
             // ~110 us				
-            long err = _target - pos;											// "ошибка"
+            long err = _target - pos;											    // "ошибка"
             bool thisDir = ( _accelSpeed * _accelSpeed * _accelInv >= abs(err) );	// пора тормозить
             _accelSpeed += ( _accelTime * _plannerPrd * (thisDir ? -_sign(_accelSpeed) : _sign(err)) );	// разгон/торможение
             if (_stopSpeed == 0) _accelSpeed = constrain(_accelSpeed, -_maxSpeed, _maxSpeed);   // ограничение

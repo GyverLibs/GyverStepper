@@ -7,9 +7,10 @@
     - Вращение со скоростью (без плавной смены скорости)
     - Оптимизировано для работы по прерыванию таймера
     - Наследует класс Stepper из StepperCore
-
-    Версии:
-    v1.0
+    
+    AlexGyver, alex@alexgyver.ru
+    https://alexgyver.ru/
+    MIT License
 */
 
 /*

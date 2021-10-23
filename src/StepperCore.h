@@ -4,9 +4,10 @@
     - Поддержка пина EN
     - Виртуальный драйвер
     - Быстрый алгоритм IO для AVR
-
-    Версии:
-    v1.0
+    
+    AlexGyver, alex@alexgyver.ru
+    https://alexgyver.ru/
+    MIT License
 */
 
 /*

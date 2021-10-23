@@ -9,14 +9,11 @@
     - Режим постоянного вращения для одной оси (для движения к концевику например)
     - Тормоз/плавная остановка/пауза на траектории планировщика
     - Оптимизировано для работы по прерыванию таймера
-    - Быстрый контроль пинов шаговика для Arduino AVR    
+    - Быстрый контроль пинов шаговика для Arduino AVR
     
     AlexGyver, alex@alexgyver.ru
     https://alexgyver.ru/
     MIT License
-    
-    Версии:
-    v1.0
 */
 
 /*
@@ -281,8 +278,8 @@ public:
     
     // добавить новую точку. Массив координат, флаг окончания и абсолютный/относительный
     void addTarget(int32_t tar[], uint8_t l, GS_posType type = ABSOLUTE) {
-        if (type = ABSOLUTE) for (int i = 0; i < _AXLES; i++) bufP[i].add(tar[i]);        
-        else for (int i = 0; i < _AXLES; i++) bufP[i].add(tar[i] + bufP[i].get(-1));
+        if (type == ABSOLUTE) for (int i = 0; i < _AXLES; i++) bufP[i].add(tar[i]);        
+        else for (int i = 0; i < _AXLES; i++) bufP[i].add(tar[i] + bufP[i].getLast());
         bufL.add(l);
         bufV.add(0);
         bufS.add(0);
@@ -342,10 +339,10 @@ public:
                 bufV.set(i + 1, maxV);
             } else if (v1 < v0 && maxV > v1) {
                 int16_t count = 0;
-                while (1) {
+                while (true) {
                     uint32_t minV = sqrt(2ul * a * bufS.get(i + count) + (uint32_t)bufV.get(i + count + 1) * bufV.get(i + count + 1));        
                     if (minV >= bufV.get(i + count)) break;
-                    else bufV.set(i + count, minV);          
+                    else bufV.set(i + count, minV);                 
                     count--;
                 }
             }
@@ -367,7 +364,7 @@ private:
     void next() {
         for (int i = 0; i < _AXLES; i++) bufP[i].next();
         bufL.next();
-        bufV.next();
+        bufV.next(FIFO_WIPE);   // обнуляем использованную ячейку
         bufS.next();
     }
     
@@ -388,18 +385,18 @@ private:
         for (int i = 0; i < _AXLES; i++) nd[i] = S / 2u;    // записываем половину
         
         if (a > 0) {
-            int16_t v1 = bufV.get(0);      // скорость начала отрезка
-            int16_t v2 = bufV.get(1);    
+            int32_t v1 = bufV.get(0);   // скорость начала отрезка
+            int32_t v2 = bufV.get(1);   // скорость конца отрезка
 
             if (2L * V * V - v1 * v1 - v2 * v2 > 2L * a * S) {  // треугольник
-                s1 = (2L * a * S + (int32_t)v2 * v2 - (int32_t)v1 * v1) / (4L * a);
+                s1 = (2L * a * S + v2 * v2 - v1 * v1) / (4L * a);
                 s2 = 0;
             } else {          // трапеция
-                s1 = ((int32_t)V * V - (int32_t)v1 * v1) / (2L * a);
-                s2 = S - ((int32_t)V * V - (int32_t)v2 * v2) / (2L * a);
+                s1 = ((int32_t)V * V - v1 * v1) / (2L * a);
+                s2 = S - ((int32_t)V * V - v2 * v2) / (2L * a);
             }
-            so1 = (int32_t)v1 * v1 / (2 * a);
-            so2 = (int32_t)v2 * v2 / (2 * a);
+            so1 = v1 * v1 / (2 * a);
+            so2 = v2 * v2 / (2 * a);
             if (status != 4) {
                 if (v1 == 0) us = us0;
                 else us = 1000000ul / v1;
