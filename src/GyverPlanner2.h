@@ -232,32 +232,37 @@ public:
 
         // https://www.embedded.com/generate-stepper-motor-speed-profiles-in-real-time/
         // здесь us10 - us*1024 для повышения разрешения микросекунд
-        if (step < s1) {                                    // разгон
-            us10 -= 2ul * us10 / (4ul * (step + so1) + 1);
-            us = (uint32_t)us10 >> 10;
-            us = constrain(us, usMin, us0);
+        if (a > 0) {
+            if (step < s1) {                                    // разгон
+                us10 -= 2ul * us10 / (4ul * (step + so1) + 1);
+                us = (uint32_t)us10 >> 10;
+                us = constrain(us, usMin, us0);
+            }
+            else if (step < s2) us = usMin;                     // постоянная
+            else if (step < S) {                                // торможение
+                us10 += 2ul * us10 / (4ul * (S - step + so2) + 1);
+                us = (uint32_t)us10 >> 10;
+                us = constrain(us, usMin, us0);
+            }
         }
-        else if (step < s2) us = usMin;                     // постоянная
-        else if (step < S) {                                // торможение
-            us10 += 2ul * us10 / (4ul * (S - step) + 1);
-            us = (uint32_t)us10 >> 10;
-            us = constrain(us, usMin, us0);
-        } else {                                            // приехали
+        if (step >= S) {                    // приехали
             if (status == 3) {              // достигли конечной точки
                 readyF = true;
                 status = 0;
             } else status = 1;              // иначе проверяем буфер
             next();
         }
-        return status > 1;
+        return (status > 1);
     }
     
     // обработчик буфера. Сам вызывается в tick. Нужно вызывать вручную при работе с tickManual
     bool checkBuffer() {
-        if (status == 1) {
-            if (bufV.available() > 1) {
-                if (bufV.get(0) == 0) calculateBlock();
-                if (setTarget()) return 1;                
+        if (status == 1) {      // достигли цели, запрашиваем новую
+            if (bufL.available() > 1) {
+                if (--block < 0) block = 0;
+                // в движении с ускорением пересчитываем путь, если остановились или есть на это время
+                if (a > 0 && (bufV.get(0) == 0 || (block == 0 && us > blockCalc))) calculateBlock();
+                if (setTarget()) return 1;
             }            
         }
         return 0;
@@ -267,8 +272,8 @@ public:
     bool ready() {
         if (readyF && !status) {
             readyF = false;
-            return true;
-        } return false;
+            return 1;
+        } return 0;
     }
     
     // true - в буфере планировщика есть место под новю точку
@@ -290,65 +295,7 @@ public:
         for (int i = 0; i < _AXLES; i++) ntar[i] = (int32_t)tar[i];
         addTarget(ntar, l, type);
     }
-    
-    // пересчитать буфер. ~10ms на размер 32 и 2 оси
-    void calculateBlock() {
-        // поиск максимальной конечной скорости
-        for (int i = 0; i < bufV.available() - 1; i++) {
-            uint32_t sqSum = 0;
-            int32_t dn[_AXLES];            
-            for (int j = 0; j < _AXLES; j++) {
-                dn[j] = bufP[j].get(i + 1) - bufP[j].get(i);
-                sqSum += (int32_t)dn[j] * dn[j];
-            }
-            uint32_t s1 = sqrt(sqSum);
-            bufS.set(i, s1);
-            if (bufL.get(i + 1) == 1) break;
-            if (a == 0) {
-                bufV.set(i + 1, uint16_t(V));
-                continue;
-            }
-            if (s1 == 0) continue;
-
-            if (i < bufV.available() - 2) {
-                int32_t multSum = 0;
-                int32_t dn1[_AXLES];
-                sqSum = 0;
-                for (int j = 0; j < _AXLES; j++) {
-                    dn1[j] = bufP[j].get(i + 2) - bufP[j].get(i + 1);
-                    sqSum += (int32_t)dn1[j] * dn1[j];
-                    multSum += (int32_t)dn[j] * dn1[j];
-                }
-                uint32_t s2 = sqrt(sqSum);
-                if (s2 == 0) continue;
-                float cosa = -(float)multSum / s1 / s2;
-                float v2;
-                if (cosa < -0.95) v2 = V;
-                else v2 = (float)a * dtA / sqrt(2.0 * (1 + cosa));
-                v2 = min(v2, V);
-                bufV.set(i + 1, v2);
-            }
-        }
-
-        // рекурсивно уменьшаем конечные скорости на участке
-        for (int i = 0; i < bufV.available() - 1; i++) {
-            uint16_t v0 = bufV.get(i);
-            uint16_t v1 = bufV.get(i + 1);
-            uint16_t maxV = sqrt(2.0 * a * bufS.get(i) + v0 * v0);
-            if (v1 > v0 && maxV < v1) {
-                bufV.set(i + 1, maxV);
-            } else if (v1 < v0 && maxV > v1) {
-                int16_t count = 0;
-                while (true) {
-                    uint32_t minV = sqrt(2ul * a * bufS.get(i + count) + (uint32_t)bufV.get(i + count + 1) * bufV.get(i + count + 1));        
-                    if (minV >= bufV.get(i + count)) break;
-                    else bufV.set(i + count, minV);                 
-                    count--;
-                }
-            }
-        }
-    }
-    
+        
     // время до следующего tick, мкс
     uint32_t getPeriod() {
         return us;
@@ -361,6 +308,60 @@ public:
     
     // ============================== PRIVATE ==============================
 private:
+    // пересчитать скорости
+    void calculateBlock() {
+        uint32_t calcTime = micros();
+        block = _BUF / 2;   // через половину буфера попробуем сделать перерасчёт пути
+        uint32_t nextS = calcS(0);
+        
+        // поиск максимальной конечной скорости
+        for (int i = 0; i < bufV.available() - 1; i++) {
+            int32_t dn0[_AXLES];
+            for (int j = 0; j < _AXLES; j++) dn0[j] = bufP[j].get(i + 1) - bufP[j].get(i);  // расстояние между точками (катеты)
+            uint32_t S1 = nextS;                                                            // "гипотенуза" (на 1 шаге посчитана выше)
+            bufS.set(i, S1);                                                                // записали в буфер
+            if (bufL.get(i + 1) == 1) break;                                                // последняя точка - выходим, потом посчитаем
+            if (S1 == 0) continue;                                                          // гипотенуза 0 - пропускаем
+
+            if (i < bufV.available() - 2) {                         // для следующих точек (+1)
+                int32_t multSum = 0;
+                // складываем перемноженные катеты для расчёта косинуса
+                for (int j = 0; j < _AXLES; j++) multSum += (int32_t)dn0[j] * (bufP[j].get(i + 2) - bufP[j].get(i + 1));
+                nextS = calcS(i + 1);                               // гипотенуза
+                if (nextS == 0) continue;                           // гипотенуза 0 - пропускаем
+                float cosa = -(float)multSum / S1 / nextS;          // косинус угла между отрезками пути
+                float Vm;                                           // макс. скорость в повороте
+                if (cosa < -0.95) Vm = V;                           // пролетаем по прямой
+                else {
+                    Vm = (float)a * dtA / sqrt(2.0 * (1 + cosa));   // считаем
+                    Vm = min(Vm, V);                                // на всякий случай ограничим
+                }
+                bufV.set(i + 1, Vm);                                // пишем в буфер
+            }
+        }
+
+        // уменьшаем переходные скорости на траектории
+        for (int i = 0; i < bufV.available() - 1; i++) {
+            uint32_t v0 = bufV.get(i);
+            uint32_t v1 = bufV.get(i + 1);
+            uint32_t maxV = sqrt(2L * a * bufS.get(i) + (uint32_t)v0 * v0);
+            if (v1 > v0 && maxV < v1) bufV.set(i + 1, maxV);    // всё в порядке
+            else if (v1 < v0 && maxV > v1) {                    // идём назад по буферу и уменьшаем скорости
+                int16_t count = 0;
+                while (true) {
+                    uint32_t minV = bufV.get(i + count + 1);
+                    minV *= (uint32_t)minV;
+                    minV = sqrt(2ul * a * bufS.get(i + count) + minV);        
+                    if (minV >= bufV.get(i + count)) break;
+                    else bufV.set(i + count, minV);                 
+                    count--;
+                }
+            }
+        }
+        // находим среднее время пересчёта, чтобы вызвать его между точками (когда появится возможность)
+        blockCalc = (blockCalc + micros() - calcTime) / 2;
+    }
+    
     void next() {
         for (int i = 0; i < _AXLES; i++) bufP[i].next();
         bufL.next();
@@ -375,7 +376,10 @@ private:
             dS[i] = abs(bufP[i].get(1) - steppers[i]->pos);         // модуль ошибки по оси      
             steppers[i]->dir = steppers[i]->pos < bufP[i].get(1) ? 1 : -1;  // направление движения по оси
         }
-        S = bufS.get(0);
+        
+        if (a == 0) S = calcS(0);
+        else S = bufS.get(0);
+        
         if (S == 0) {       // путь == 0, мы никуда не едем
             status = 1;     // на буфер
             next();
@@ -388,34 +392,39 @@ private:
             int32_t v1 = bufV.get(0);   // скорость начала отрезка
             int32_t v2 = bufV.get(1);   // скорость конца отрезка
 
-            if (2L * V * V - v1 * v1 - v2 * v2 > 2L * a * S) {  // треугольник
-                s1 = (2L * a * S + v2 * v2 - v1 * v1) / (4L * a);
+            if (2L * V * V - (int32_t)v1 * v1 - (int32_t)v2 * v2 > 2L * a * S) {  // треугольник
+                s1 = (2L * a * S + (int32_t)v2 * v2 - (int32_t)v1 * v1) / (4L * a);
                 s2 = 0;
             } else {          // трапеция
-                s1 = ((int32_t)V * V - v1 * v1) / (2L * a);
-                s2 = S - ((int32_t)V * V - v2 * v2) / (2L * a);
+                s1 = ((int32_t)V * V - (int32_t)v1 * v1) / (2L * a);
+                s2 = S - ((int32_t)V * V - (int32_t)v2 * v2) / (2L * a);
             }
-            so1 = v1 * v1 / (2 * a);
-            so2 = v2 * v2 / (2 * a);
+            so1 = (int32_t)v1 * v1 / (2 * a);
+            so2 = (int32_t)v2 * v2 / (2 * a);
             if (status != 4) {
                 if (v1 == 0) us = us0;
                 else us = 1000000ul / v1;
             }
-        } else {
-            so1 = so2 = 0;
-            s1 = 0;
-            s2 = S;
-            us = usMin;
-        }
-
+        } else us = usMin;
+        
         step = 0;
         readyF = false;
         if (status != 4) {    // если это не стоп
             if (bufL.get(1) == 1) status = 3;
             else status = 2;
             us10 = us << 10;
-        }  
+        }
         return 1;
+    }
+    
+    uint32_t calcS(int i) {
+        uint32_t sqSum = 0;
+        int32_t dj;
+        for (int j = 0; j < _AXLES; j++) {
+            dj = bufP[j].get(i + 1) - bufP[j].get(i);
+            sqSum += (int32_t)dj * dj;
+        }
+        return sqrt(sqSum);
     }
 
     uint32_t us;
@@ -428,6 +437,9 @@ private:
     uint8_t status = 0, speedAxis = 0, maxAx;
     bool readyF = true;
     float dtA = 0.3;
+    
+    int8_t block = 100;
+    uint32_t blockCalc = 20000;
     
     Stepper<_DRV>* steppers[_AXLES];    
     FIFO<int32_t, _BUF> bufP[_AXLES];
