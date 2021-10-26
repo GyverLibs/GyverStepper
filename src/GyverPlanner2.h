@@ -99,16 +99,25 @@ public:
 
     // ============================= PLANNER =============================    
     // установка максимальной скорости планировщика в шаг/сек
-    void setMaxSpeed(float nV) {
-        V = nV;
-        usMin = 1000000.0 / V;
+    void setMaxSpeed(float speed) {
+        nV = speed;
+        if (!status) {
+            V = nV;
+            usMin = 1000000.0 / V;
+            setAcceleration(na);
+            changeSett = 0;
+        } else changeSett = 1;
     }
     
     // установка ускорения планировщика в шаг/сек^2
-    void setAcceleration(uint16_t nA) {
-        a = nA;
-        if (a != 0) us0 = 0.676 * 1000000 * sqrt(2.0 / a);
-        else us0 = usMin;
+    void setAcceleration(uint16_t acc) {
+        na = acc;
+        if (!status) {
+            a = na;
+            if (a != 0) us0 = 0.676 * 1000000 * sqrt(2.0 / a);
+            else us0 = usMin;
+            changeSett = 0;
+        } else changeSett = 1;
     }
     
     // установить dt смены скорости, 0.0.. 1.0 по умолч. 0.3
@@ -261,7 +270,7 @@ public:
             if (bufL.available() > 1) {
                 if (--block < 0) block = 0;
                 // в движении с ускорением пересчитываем путь, если остановились или есть на это время
-                if (a > 0 && (bufV.get(0) == 0 || (block == 0 && us > blockCalc))) calculateBlock();
+                if (a > 0 && (bufV.get(0) == 0 || (block == 0 && !changeSett && us > blockCalc))) calculateBlock();
                 if (setTarget()) return 1;
             }            
         }
@@ -310,6 +319,16 @@ public:
 private:
     // пересчитать скорости
     void calculateBlock() {
+        if (changeSett && bufV.get(0) == 0) {   // параметры движения изменились, а мы стоим
+            noInterrupts();
+            uint8_t stBuf = status;
+            status = 0;
+            setMaxSpeed(nV);
+            status = stBuf;
+            interrupts();
+            changeSett = 0;
+        }
+        
         uint32_t calcTime = micros();
         block = _BUF / 2;   // через половину буфера попробуем сделать перерасчёт пути
         uint32_t nextS = calcS(0);
@@ -431,15 +450,17 @@ private:
     int32_t nd[_AXLES], dS[_AXLES];
     int32_t step, S, s1, s2, so1, so2;
     uint32_t tmr, us0, usMin, us10;
-    uint16_t a;
+    uint16_t a, na;
     int16_t stopStep;
-    float V;    
+    float V, nV;    
     uint8_t status = 0, speedAxis = 0, maxAx;
     bool readyF = true;
     float dtA = 0.3;
     
     int8_t block = 100;
     uint32_t blockCalc = 20000;
+    bool changeSett = 0;
+    
     
     Stepper<_DRV>* steppers[_AXLES];    
     FIFO<int32_t, _BUF> bufP[_AXLES];

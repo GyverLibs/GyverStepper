@@ -98,16 +98,25 @@ public:
     }
     
     // установка максимальной скорости планировщика в шаг/сек
-    void setMaxSpeed(float nV) {
-        V = nV;
-        usMin = 1000000.0 / V;
+    void setMaxSpeed(float speed) {
+        nV = speed;
+        if (!status) {
+            V = nV;
+            usMin = 1000000.0 / V;
+            setAcceleration(na);
+            changeSett = 0;
+        } else changeSett = 1;
     }
     
     // установка ускорения планировщика в шаг/сек^2
-    void setAcceleration(uint16_t nA) {
-        a = nA;
-        if (a != 0) us0 = 0.676 * 1000000 * sqrt(2.0 / a);
-        else us0 = usMin;
+    void setAcceleration(uint16_t acc) {
+        na = acc;
+        if (!status) {
+            a = na;
+            if (a != 0) us0 = 0.676 * 1000000 * sqrt(2.0 / a);
+            else us0 = usMin;
+            changeSett = 0;
+        } else changeSett = 1;
     }
     
     // пауза (доехать до заданной точки и ждать). ready() не вернёт true, пока ты на паузе
@@ -166,6 +175,11 @@ public:
     // установить цель в шагах и начать движение. ~100 us
     bool setTarget(int32_t target[], GS_posType type = ABSOLUTE) {   
         tmr = micros();
+        if (changeSett) {       // применяем настройки
+            setMaxSpeed(nV);
+            changeSett = 0;
+        }
+        
         S = 0;                                              // путь
         for (uint8_t i = 0; i < _AXLES; i++) {              // для всех осей            
             if (type == RELATIVE) target[i] += steppers[i]->pos;    // если относительное смещение - прибавляем текущий pos
@@ -179,7 +193,7 @@ public:
         }
         if (S == 0) {          // путь == 0, мы никуда не едем
             readyF = true;     // готовы к следующей точке
-            status = 0;        // стоп машина
+            brake();           // стоп машина
             return 0;
         }
         
@@ -285,10 +299,7 @@ public:
             us10 += 2ul * us10 / (4ul * stopStep + 1);    // торможение
             us = (uint32_t)us10 >> 10;
             us = constrain(us, usMin, us0);
-            if (stopStep <= 0 || step >= S || us >= us0) {
-                us = 0;
-                status = 0;
-            }
+            if (stopStep <= 0 || step >= S || us >= us0) brake();
             return status;
         }
 
@@ -299,15 +310,14 @@ public:
             us = (uint32_t)us10 >> 10;
             us = constrain(us, usMin, us0);
         }
-        else if (step < s2) us = usMin;                     // постоянная
-        else if (step < S) {                                // торможение
+        else if (step < s2) us = usMin;                 // постоянная
+        else if (step < S) {                            // торможение
             us10 += 2ul * us10 / (4ul * (S - step) + 1);
             us = (uint32_t)us10 >> 10;
             us = constrain(us, usMin, us0);
-        } else {                                            // приехали
-            us = 0;
+        } else {                                        // приехали
             if (status == 1) readyF = true;
-            status = 0;
+            brake();
         }
         return status;
     }
@@ -327,11 +337,12 @@ private:
     int32_t tar[_AXLES], nd[_AXLES], dS[_AXLES];
     int32_t step, S, s1, s2, so1;
     uint32_t tmr, us0, usMin, us10;
-    uint16_t a;
+    uint16_t a, na;
     int16_t stopStep;
-    float V;    
+    float V, nV;    
     uint8_t status = 0, speedAxis = 0, maxAx;
     bool readyF = true;
+    bool changeSett = 0;
     Stepper<_DRV>* steppers[_AXLES];
 };
 #endif

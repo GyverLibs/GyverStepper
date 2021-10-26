@@ -188,6 +188,15 @@ public:
     // установить цель и опционально режим
     void setTarget(int32_t ntar, GS_posType type = ABSOLUTE) {
         tmr = micros();
+        if (changeSett) {       // применяем настройки
+            usMin = usMinN;
+            #ifndef GS_NO_ACCEL
+            V = 1000000L / usMin;
+            setAcceleration(na);
+            #endif
+            changeSett = 0;
+        }
+        
         if (type == RELATIVE) tar = ntar + pos;
         else tar = ntar;
         if (tar == pos) {
@@ -261,20 +270,30 @@ public:
 
     // ========================== POSITION SETTINGS ==========================
     // установка ускорения в шаг/сек^2
-    void setAcceleration(uint16_t nA) {
+    void setAcceleration(uint16_t acc) {
         #ifndef GS_NO_ACCEL
-        a = nA;
-        if (a != 0) us0 = 0.676 * 1000000 * sqrt(2.0 / a);
-        else us0 = usMin;
+        na = acc;
+        if (!status) {              // применяем, если мотор остановлен
+            a = na;
+            if (a != 0) us0 = 0.676 * 1000000 * sqrt(2.0 / a);
+            else us0 = usMin;
+            changeSett = 0;
+        } else changeSett = 1;      // иначе флаг на изменение
         #endif
     }
     
     // установить скорость движения при следовании к позиции в шагах/сек
     void setMaxSpeed(int32_t speed) {
-        usMin = 1000000L / speed;
-        #ifndef GS_NO_ACCEL
-        V = (uint16_t)speed;  // если < 1, отсечётся до 0
-        #endif
+        if (speed == 0) return;
+        usMinN = 1000000L / speed;
+        if (!status) {              // применяем, если мотор остановлен
+            usMin = usMinN;
+            #ifndef GS_NO_ACCEL
+            setAcceleration(a);
+            V = (uint16_t)speed;    // если < 1, отсечётся до 0
+            #endif
+            changeSett = 0;
+        } else changeSett = 1;      // иначе флаг на изменение
     }
     
     #ifndef ESP8266
@@ -285,10 +304,16 @@ public:
     
     // установить скорость движения при следовании к позиции в шагах/сек, float
     void setMaxSpeed(float speed) {
-        usMin = 1000000.0 / speed;
-        #ifndef GS_NO_ACCEL
-        V = speed;  // если < 1, отсечётся до 0
-        #endif
+        if (speed == 0) return;
+        usMinN = 1000000.0 / speed;
+        if (!status) {              // применяем, если мотор остановлен
+            usMin = usMinN;
+            #ifndef GS_NO_ACCEL
+            setAcceleration(a);
+            V = (uint16_t)speed;    // если < 1, отсечётся до 0
+            #endif
+            changeSett = 0;
+        } else changeSett = 1;      // иначе флаг на изменение
     }
     
     // установить скорость движения при следовании к позиции в град/сек
@@ -370,9 +395,12 @@ private:
     uint16_t stepsRev;
     uint8_t status = 0;
     bool readyF = 0;
+    bool changeSett = 0;
+    uint32_t usMinN;
     
     #ifndef GS_NO_ACCEL
     uint16_t a, V;
+    uint16_t na;
     int16_t stopStep;
     uint32_t S, us0, us10;
     int32_t s1, s2, steps;
