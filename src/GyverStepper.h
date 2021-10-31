@@ -46,6 +46,7 @@
     v2.1.3 - починил FOLLOW_POS в GStepper, починил RELATIVE в GPlanner2 и исправил багу с рывками
     v2.1.4 - GPlanner2: исправил рывки, добавил адаптивное перестроение траектории без остановок, чутка оптимизировал вычисления
     v2.1.5 - возможность менять скорость и ускорение во время работы планировщика (GStepper2, GPlanner, GPlanner2)
+    v2.1.6 - исправлена ошибка компиляции при вызове disable() в GStepper
 */
 
 /*
@@ -428,7 +429,7 @@ public:
         _workState = false;
         _stopSpeed = 0;
         resetMotor();
-        if (_autoPower) disable();        
+        if (_autoPower) Stepper<_DRV, _TYPE>::disable();
     }
     
     // получить минимальный период, с которым нужно вызывать tick при заданной макс. скорости
@@ -444,14 +445,15 @@ public:
     // время между шагами
     uint32_t stepTime = 10000;
     
+    using Stepper<_DRV, _TYPE>::enable;
+    using Stepper<_DRV, _TYPE>::disable;
+    
     // ========================= PRIVATE ==========================
 private:
     using Stepper<_DRV, _TYPE>::pos;
     using Stepper<_DRV, _TYPE>::dir;
     using Stepper<_DRV, _TYPE>::setPins;
     using Stepper<_DRV, _TYPE>::step;
-    using Stepper<_DRV, _TYPE>::enable;
-    using Stepper<_DRV, _TYPE>::disable;
     
     // сброс перемещения
     void resetMotor() {
