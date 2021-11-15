@@ -64,6 +64,7 @@ tickManual	KEYWORD2
 getPeriod	KEYWORD2
 getStatus	KEYWORD2
 
+clearBuffer	KEYWORD2
 checkBuffer	KEYWORD2
 addTarget	KEYWORD2
 available	KEYWORD2

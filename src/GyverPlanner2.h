@@ -72,6 +72,8 @@
     // обработчик буфера. Сам вызывается в tick. Нужно вызывать вручную при работе с tickManual
     // вернёт true, если планировщик отправил моторы на новую позицию (в этот момент можно запускать таймер)
     void checkBuffer();
+    
+    void clearBuffer();     // очистить буфер. Вызывать, когда планировщик остановлен!
 */
 
 #ifndef _GyverPlanner2_h
@@ -313,6 +315,14 @@ public:
     // статус планировщика
     uint8_t getStatus() {
         return status;
+    }
+    
+    // очистить буфер
+    void clearBuffer() {
+        for (int i = 0; i < _AXLES; i++) bufP[i].clear();
+        bufL.clear();
+        bufV.clear();
+        bufS.clear();
     }
     
     // ============================== PRIVATE ==============================
