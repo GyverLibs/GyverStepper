@@ -23,9 +23,6 @@
     Stepper<STEPPER4WIRE, STEPPER_VIRTUAL> stepper;					// виртуальный драйвер 4 пин
 
     // ============ КЛАСС ============
-    // настроить пины
-    void setPins(uint8_t pin1 = 255, uint8_t pin2 = 255, uint8_t pin3 = 255, uint8_t pin4 = 255, uint8_t pin5 = 255);
-
     void step();                                // сделать шаг
     void invertEn(bool val);                    // инвертировать поведение EN пина
     void reverse(bool val);                     // инвертировать направление мотора
@@ -57,11 +54,6 @@ template <GS_driverType _DRV, GS_driverType _TYPE = STEPPER_PINS>
 class Stepper {
 public:
     Stepper(uint8_t pin1 = 255, uint8_t pin2 = 255, uint8_t pin3 = 255, uint8_t pin4 = 255, uint8_t pin5 = 255) {
-        setPins(pin1, pin2, pin3, pin4, pin5);
-    }
-    
-    // задать пины
-    void setPins(uint8_t pin1 = 255, uint8_t pin2 = 255, uint8_t pin3 = 255, uint8_t pin4 = 255, uint8_t pin5 = 255) {
         if (_TYPE == STEPPER_PINS) {
             if (_DRV == STEPPER2WIRE) {
                 configurePin(0, pin1);
@@ -82,7 +74,7 @@ public:
             }
         }
     }
-    
+
     // сделать шаг
     void step() {
         pos += dir;
@@ -137,8 +129,8 @@ public:
     }
     
     int32_t pos = 0;
-    int8_t dir = 0;
-    
+    int8_t dir = 1;
+
 private:        
     // настройка пина
     void configurePin(int num, uint8_t pin) {
@@ -166,7 +158,7 @@ private:
     // шаг для 4 фаз
     void step4() {        
         if (_TYPE == STEPPER_PINS) {
-            if (_DRV == STEPPER4WIRE) {	
+            if (_DRV == STEPPER4WIRE) {
                 // 0b11 берёт два бита, т.е. формирует 0 1 2 3 0 1..
                 switch (thisStep & 0b11) {			
                 case 0: setPin(0, 1); setPin(1, 0); setPin(2, 1); setPin(3, 0); break;	// 1010

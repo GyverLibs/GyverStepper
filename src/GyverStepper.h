@@ -48,6 +48,7 @@
     v2.1.5 - возможность менять скорость и ускорение во время работы планировщика (GStepper2, GPlanner, GPlanner2)
     v2.1.6 - исправлена ошибка компиляции при вызове disable() в GStepper
     v2.1.7 - добавлен clearBuffer() в GPlanner2
+    v2.1.8 - оптимизация, исправлен KEEP_SPEED в GStepper
 */
 
 /*
@@ -198,8 +199,7 @@ class GStepper : public Stepper<_DRV, _TYPE> {
 public:	
     // конструктор
     GStepper(int stepsPerRev, uint8_t pin1 = 255, uint8_t pin2 = 255, uint8_t pin3 = 255, uint8_t pin4 = 255, uint8_t pin5 = 255) : 
-    _stepsPerDeg(stepsPerRev / 360.0) {
-        setPins(pin1, pin2, pin3, pin4, pin5);
+    _stepsPerDeg(stepsPerRev / 360.0), Stepper<_DRV, _TYPE> (pin1, pin2, pin3, pin4, pin5) {
         // умолчания
         setMaxSpeed(300);
         setAcceleration(300);
@@ -365,6 +365,7 @@ public:
         _speed = speed;
         if (abs(_speed) < _MIN_STEP_SPEED) _speed = _MIN_STEP_SPEED * _sign(_speed);
         enable();
+        dir = (_speed > 0) ? 1 : -1;
         if (_accel != 0) {							// плавный старт		
             if (_accelSpeed != _speed) {
                 _smoothStart = true;
@@ -386,8 +387,7 @@ public:
             }	
             _accelSpeed = _speed;
             stepTime = round(1000000.0 / abs(_speed));
-            dir = (_speed > 0) ? 1 : -1;
-        }        
+        }
     }
     
     // установка целевой скорости в градусах/секунду
@@ -453,7 +453,6 @@ public:
 private:
     using Stepper<_DRV, _TYPE>::pos;
     using Stepper<_DRV, _TYPE>::dir;
-    using Stepper<_DRV, _TYPE>::setPins;
     using Stepper<_DRV, _TYPE>::step;
     
     // сброс перемещения

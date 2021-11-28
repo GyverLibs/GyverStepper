@@ -27,9 +27,6 @@
 
     // ============ КЛАСС ============
     // === наследуется из Stepper ====
-    // настроить пины
-    void setPins(uint8_t pin1 = 255, uint8_t pin2 = 255, uint8_t pin3 = 255, uint8_t pin4 = 255, uint8_t pin5 = 255);
-
     void step();                                // сделать шаг
     void invertEn(bool val);                    // инвертировать поведение EN пина
     void reverse(bool val);                     // инвертировать направление мотора
@@ -90,8 +87,8 @@ template <GS_driverType _DRV, GS_driverType _TYPE = STEPPER_PINS>
 class GStepper2 : public Stepper<_DRV, _TYPE> {
 public:
     // ========================= КОНСТРУКТОР ==========================
-    GStepper2(uint16_t steps, uint8_t pin1 = 255, uint8_t pin2 = 255, uint8_t pin3 = 255, uint8_t pin4 = 255, uint8_t pin5 = 255) {
-        setPins(pin1, pin2, pin3, pin4, pin5);
+    GStepper2(uint16_t steps, uint8_t pin1 = 255, uint8_t pin2 = 255, uint8_t pin3 = 255, uint8_t pin4 = 255, uint8_t pin5 = 255) :
+    Stepper<_DRV, _TYPE> (pin1, pin2, pin3, pin4, pin5) {
         stepsRev = steps;
         setMaxSpeed(100);
     }
@@ -385,7 +382,6 @@ public:
     // чики пуки
     using Stepper<_DRV, _TYPE>::pos;
     using Stepper<_DRV, _TYPE>::dir;
-    using Stepper<_DRV, _TYPE>::setPins;
     using Stepper<_DRV, _TYPE>::step;
 
 // ============================= PRIVATE =============================
