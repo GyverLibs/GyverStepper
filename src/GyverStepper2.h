@@ -3,6 +3,9 @@
     - Легче на несколько кБ, всё целочисленное
     - Более эффективный гибридный алгоритм
     - Движение к цели с ускорением
+    - Макс. скорость: 
+      - Обычный режим: 37000 шаг/с на полной, 18000 шаг/с на разгоне
+      - Быстрый профиль: 37000 шаг/с на полной, 37000 шаг/с на разгоне
     - Движение от точки к точке. Смена точки во время движения не будет плавной
     - Вращение со скоростью (без плавной смены скорости)
     - Оптимизировано для работы по прерыванию таймера
@@ -91,6 +94,7 @@ public:
     Stepper<_DRV, _TYPE> (pin1, pin2, pin3, pin4, pin5) {
         stepsRev = steps;
         setMaxSpeed(100);
+        setAcceleration(200);
     }
     
     // ============================= TICK =============================
@@ -118,25 +122,57 @@ public:
             // https://www.embedded.com/generate-stepper-motor-speed-profiles-in-real-time/
             steps++;
             if (steps < s1) {                                    // разгон
-                us10 -= 2ul * us10 / (4ul * (steps) + 1);
+                #ifndef GS_FAST_PROFILE
+                us10 -= 2ul * us10 / (4ul * (steps + so1) + 1);
                 us = (uint32_t)us10 >> 10;
                 us = constrain(us, usMin, us0);
+                #else
+                if ((steps + so1) >= prfS[GS_FAST_PROFILE - 1]) us = usMin;
+                else {
+                    int j = 0;
+                    while ((steps + so1) >= prfS[j]) j++;
+                    us = prfP[j];
+                }
+                #endif
             }
             else if (steps < s2) us = usMin;                     // постоянная
             else if (steps < S) {                                // торможение
+                #ifndef GS_FAST_PROFILE
                 us10 += 2ul * us10 / (4ul * (S - steps) + 1);
                 us = (uint32_t)us10 >> 10;
                 us = constrain(us, usMin, us0);
+                #else
+                if ((S - steps) >= prfS[GS_FAST_PROFILE - 1]) us = usMin;
+                else {
+                    int j = 0;
+                    while ((S - steps) >= prfS[j]) j++;
+                    us = prfP[j];
+                }
+                #endif
             } else {                                             // приехали
+                if (revF) {
+                    status = 0;
+                    setTarget(bufT);
+                    return status;
+                }
                 if (status == 1) readyF = 1;
                 brake();
             }
             return status;
         case 4:     // плавная остановка
             stopStep--;
+            #ifndef GS_FAST_PROFILE
             us10 += 2ul * us10 / (4ul * stopStep + 1);
             us = (uint32_t)us10 >> 10;
             us = constrain(us, usMin, us0);
+            #else
+            if (stopStep >= prfS[GS_FAST_PROFILE - 1]) us = usMin;
+            else {
+                int j = 0;
+                while (stopStep >= prfS[j]) j++;
+                us = prfP[j];
+            }
+            #endif
             if (pos == tar || stopStep <= 0 || us >= us0) brake();
             return status;
         }
@@ -184,7 +220,6 @@ public:
     // =========================== POSITION MODE ===========================
     // установить цель и опционально режим
     void setTarget(int32_t ntar, GS_posType type = ABSOLUTE) {
-        tmr = micros();
         if (changeSett) {       // применяем настройки
             usMin = usMinN;
             #ifndef GS_NO_ACCEL
@@ -196,29 +231,42 @@ public:
         
         if (type == RELATIVE) tar = ntar + pos;
         else tar = ntar;
+        
         if (tar == pos) {
             brake();
             readyF = 1;
             return;
         }
-        dir = (pos < tar) ? 1 : -1;
-        
+
     #ifndef GS_NO_ACCEL
-        S = abs(pos - tar);
+        revF = 0;
+        S = abs(tar - pos);
+        int8_t ndir = (pos < tar) ? 1 : -1;
+        int32_t v1 = 0;
+        if (status > 0) v1 = 1000000L / us;
+        int32_t ss = (int32_t)v1 * v1 / (2L * a);   // расстояние до остановки с текущей скоростью
+        if (ss > S || (status && ndir != dir)) {    // не успеем остановиться или едем не туда
+            revF = 1;
+            bufT = tar;
+            tar = pos + ss * dir;
+            S = ss;
+        }
         
         // расчёт точек смены характера движения
         // s1 - окончание разгона, s1-s2 - равномерное движение, s2 - торможение
         if (a > 0 && usMin < GS_MIN_US) {           // ускорение задано и мин. скорость выше порога
-            if ((int32_t)V * V > (int32_t)a * S) {  // треугольник
-                s1 = S / 2L;
+            if (2L * V * V - (int32_t)v1 * v1 > 2L * a * S) {   // треугольник
+                if (revF) s1 = 0;
+                else s1 = (2L * a * S - (int32_t)v1 * v1) / (4L * a);
                 s2 = s1;
-            } else {                                // трапеция
-                s1 = (int32_t)V * V / (2 * a);
-                s2 = S - s1;
+            } else {                                            // трапеция
+                s1 = ((int32_t)V * V - (int32_t)v1 * v1) / (2L * a);
+                s2 = S - (int32_t)V * V / (2L * a);
             }
-            us = us0;
+            so1 = (int32_t)v1 * v1 / (2L * a);
+            if (v1 == 0) us = us0;
         } else {
-            s1 = 0;
+            s1 = so1 = 0;
             s2 = S;
             us = usMin;
         }
@@ -228,6 +276,7 @@ public:
     #else
         us = usMin;
     #endif
+        dir = (pos < tar) ? 1 : -1;
         status = 1;
         readyF = 0;
     }
@@ -247,7 +296,7 @@ public:
     
     // получить целевую позицию
     int32_t getTarget() {
-        return tar;
+        return revF ? bufT : tar;
     }
     
     // установить текущую позицию
@@ -275,6 +324,7 @@ public:
             if (a != 0) us0 = 0.676 * 1000000 * sqrt(2.0 / a);
             else us0 = usMin;
             changeSett = 0;
+            calcPlan();
         } else changeSett = 1;      // иначе флаг на изменение
         #endif
     }
@@ -286,8 +336,8 @@ public:
         if (!status) {              // применяем, если мотор остановлен
             usMin = usMinN;
             #ifndef GS_NO_ACCEL
-            setAcceleration(a);
             V = (uint16_t)speed;    // если < 1, отсечётся до 0
+            setAcceleration(a);
             #endif
             changeSett = 0;
         } else changeSett = 1;      // иначе флаг на изменение
@@ -327,7 +377,7 @@ public:
     // остановить плавно (с заданным ускорением)
     void stop() {
     #ifndef GS_NO_ACCEL
-        if (us == 0 || a == 0 || us > GS_MIN_US || status == 3 || !status) {   // нет ускорения или медленно едем - дёргай ручник
+        if (a == 0 || us > GS_MIN_US || status == 3 || !status) {   // нет ускорения или медленно едем - дёргай ручник
             brake();
             return;
         }
@@ -386,6 +436,24 @@ public:
 
 // ============================= PRIVATE =============================
 private:
+    void calcPlan() {
+        #ifdef GS_FAST_PROFILE
+        if (a > 0) {
+            uint32_t sa = (uint32_t)V * V / a / 2ul;            // расстояние разгона
+            float dtf = sqrt(2.0 * sa / a) / GS_FAST_PROFILE;   // время участка профиля
+            float s0 = a * dtf * dtf / 2.0;                     // первый участок профиля
+            uint32_t dt = dtf * 1000000.0;                      // время участка в секундах
+            for (int i = 0; i < GS_FAST_PROFILE; i++) {
+                prfS[i] = s0 * (i + 1) * (i + 1);
+                uint32_t ds = prfS[i];
+                if (i > 0) ds -= prfS[i - 1];
+                if (ds <= 0) prfP[i] = 0;
+                else prfP[i] = (uint32_t)dt / ds;
+            }
+        }
+        #endif
+    }
+
     uint32_t tmr = 0, us = 10000, usMin = 10000;
     int32_t tar = 0;
     uint16_t stepsRev;
@@ -399,7 +467,13 @@ private:
     uint16_t na;
     int16_t stopStep;
     uint32_t S, us0, us10;
-    int32_t s1, s2, steps;
+    int32_t s1, s2, so1, steps;
+    int32_t bufT = 0;
+    bool revF = false;
+    
+    #ifdef GS_FAST_PROFILE
+    uint32_t prfS[GS_FAST_PROFILE], prfP[GS_FAST_PROFILE];
+    #endif
     #endif
 };
 #endif

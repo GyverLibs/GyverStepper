@@ -1,7 +1,9 @@
 /*
     Многоосевой планировщик траекторий для шаговых моторов
     - ОСТАНОВКА В КАЖДОЙ ТОЧКЕ. БУФЕР НА ОДНУ СЛЕДУЮЩУЮ ПОЗИЦИЮ
-    - Макс. скорость: 37000 шаг/с на полной, 14000 шаг/с на разгоне
+    - Макс. скорость: 
+      - Обычный режим: 37000 шаг/с на полной, 14000 шаг/с на разгоне
+      - Быстрый профиль: 37000 шаг/с на полной, 37000 шаг/с на разгоне
     - Трапецеидальный профиль скорости (планировщик 2-го порядка)
     - Настройка скорости и ускорения
     - Любое количество осей. Будут двигаться синхронно к заданным целям
@@ -116,6 +118,7 @@ public:
             if (a != 0) us0 = 0.676 * 1000000 * sqrt(2.0 / a);
             else us0 = usMin;
             changeSett = 0;
+            calcPlan();
         } else changeSett = 1;
     }
     
@@ -174,7 +177,6 @@ public:
     
     // установить цель в шагах и начать движение. ~100 us
     bool setTarget(int32_t target[], GS_posType type = ABSOLUTE) {   
-        tmr = micros();
         if (changeSett) {       // применяем настройки
             setMaxSpeed(nV);
             changeSett = 0;
@@ -305,16 +307,34 @@ public:
 
         // https://www.embedded.com/generate-stepper-motor-speed-profiles-in-real-time/
         // здесь us10 - us*1024 для повышения разрешения микросекунд
-        if (step < s1) {                                    // разгон
+        if (step < s1) {                                // разгон
+            #ifndef GS_FAST_PROFILE
             us10 -= 2ul * us10 / (4ul * (step + so1) + 1);
             us = (uint32_t)us10 >> 10;
             us = constrain(us, usMin, us0);
+            #else
+            if ((step + so1) >= prfS[GS_FAST_PROFILE - 1]) us = usMin;
+            else {
+                int j = 0;
+                while ((step + so1) >= prfS[j]) j++;
+                us = prfP[j];
+            }
+            #endif
         }
         else if (step < s2) us = usMin;                 // постоянная
         else if (step < S) {                            // торможение
+            #ifndef GS_FAST_PROFILE
             us10 += 2ul * us10 / (4ul * (S - step) + 1);
             us = (uint32_t)us10 >> 10;
             us = constrain(us, usMin, us0);
+            #else
+            if ((S - step) >= prfS[GS_FAST_PROFILE - 1]) us = usMin;
+            else {
+                int j = 0;
+                while ((S - step) >= prfS[j]) j++;
+                us = prfP[j];
+            }
+            #endif
         } else {                                        // приехали
             if (status == 1) readyF = true;
             brake();
@@ -333,6 +353,28 @@ public:
 
     // ============================== PRIVATE ==============================
 private:
+    void calcPlan() {
+        #ifdef GS_FAST_PROFILE
+        if (a > 0) {
+            uint32_t sa = (uint32_t)V * V / a / 2ul;            // расстояние разгона
+            float dtf = sqrt(2.0 * sa / a) / GS_FAST_PROFILE;   // время участка профиля
+            float s0 = a * dtf * dtf / 2.0;                     // первый участок профиля
+            uint32_t dt = dtf * 1000000.0;                      // время участка в секундах
+            for (int i = 0; i < GS_FAST_PROFILE; i++) {
+                prfS[i] = s0 * (i + 1) * (i + 1);
+                uint32_t ds = prfS[i];
+                if (i > 0) ds -= prfS[i - 1];
+                if (ds <= 0) prfP[i] = 0;
+                else prfP[i] = (uint32_t)dt / ds;
+            }
+        }
+        #endif
+    }
+    
+    #ifdef GS_FAST_PROFILE
+    uint32_t prfS[GS_FAST_PROFILE], prfP[GS_FAST_PROFILE];
+    #endif
+    
     uint32_t us;
     int32_t tar[_AXLES], nd[_AXLES], dS[_AXLES];
     int32_t step, S, s1, s2, so1;

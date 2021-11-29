@@ -17,6 +17,9 @@ GPlanner	KEYWORD1
 GPlanner2	KEYWORD1
 Stepper	KEYWORD1
 
+GS_NO_ACCEL	KEYWORD1
+GS_FAST_PROFILE	KEYWORD1
+
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
@@ -87,4 +90,3 @@ SMOOTH_ALGORITHM	LITERAL1
 DRIVER_STEP_TIME	LITERAL1
 STEPPER_PINS	LITERAL1
 STEPPER_VIRTUAL	LITERAL1
-GS_NO_ACCEL	LITERAL1
