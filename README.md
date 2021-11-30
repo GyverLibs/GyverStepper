@@ -760,6 +760,7 @@ void loop() {
 - v2.1.7 - добавлен clearBuffer() в GPlanner2
 - v2.1.8 - оптимизация, исправлен KEEP_SPEED в GStepper
 - v2.2.0 - добавлен скоростной профиль GS_FAST_PROFILE для GStepper2, GPlanner, GPlanner2. Поддержка режима "слежения" для GStepper2
+- v2.2.1 - небольшая оптимизация SRAM
 
 <a id="feedback"></a>
 ## Баги и обратная связь

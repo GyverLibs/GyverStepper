@@ -134,14 +134,12 @@ public:
 private:        
     // настройка пина
     void configurePin(int num, uint8_t pin) {
+        pinMode(pin, OUTPUT);
         #ifdef __AVR__
         _port_reg[num] = portOutputRegister(digitalPinToPort(pin));
-        _ddr_reg[num] = portModeRegister(digitalPinToPort(pin));
         _bit_mask[num] = digitalPinToBitMask(pin);
-        *_ddr_reg[num] |= _bit_mask[num];	// OUTPUT
         #else
         _pins[num] = pin;
-        pinMode(_pins[num], OUTPUT);
         #endif
     }
 
@@ -224,7 +222,6 @@ private:
     
 #ifdef __AVR__
     volatile uint8_t *_port_reg[_PINS_AMOUNT];
-    volatile uint8_t *_ddr_reg[_PINS_AMOUNT];
     volatile uint8_t _bit_mask[_PINS_AMOUNT];
 #else
     uint8_t _pins[_PINS_AMOUNT];
