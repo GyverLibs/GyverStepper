@@ -40,10 +40,6 @@
 #include <Arduino.h>
 #include "GStypes.h"
 
-#ifndef nullptr
-#define nullptr NULL
-#endif
-
 #ifndef DRIVER_STEP_TIME
 #define DRIVER_STEP_TIME 4
 #endif
@@ -217,8 +213,8 @@ private:
     bool _globDir = false;
     int8_t thisStep = 0;
     
-    void (*_step)(uint8_t a) = nullptr;
-    void (*_power)(bool a) = nullptr;
+    void (*_step)(uint8_t a) = NULL;
+    void (*_power)(bool a) = NULL;
     
 #ifdef __AVR__
     volatile uint8_t *_port_reg[_PINS_AMOUNT];
