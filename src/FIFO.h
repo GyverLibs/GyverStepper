@@ -8,7 +8,7 @@ template <typename T, uint16_t SIZE >
 class FIFO {
 public:
     FIFO() {
-        for (int i = 0; i < SIZE; i++) buf[i] = 0;
+        for (uint16_t i = 0; i < SIZE; i++) buf[i] = 0;
     }
     // очистить
     void clear() {

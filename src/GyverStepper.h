@@ -51,6 +51,7 @@
     v2.1.8 - оптимизация, исправлен KEEP_SPEED в GStepper
     v2.2.0 - добавлен скоростной профиль GS_FAST_PROFILE для GStepper2, GPlanner, GPlanner2. Поддержка режима "слежения" для GStepper2
     v2.2.1 - небольшая оптимизация SRAM
+	v2.3 - fix compiler warnings, поддержка esp32
 */
 
 /*
@@ -374,7 +375,7 @@ public:
                 #ifdef __AVR__
                 _smoothPlannerPrd = map(max(abs((int)_speed), abs((int)_accelSpeed)), 1000, 20000, 15000, 1000);
                 #else
-                // горячий привет тупому компилятору ESP8266 и индусам, которые его настраивали
+                // горячий привет авторам ядра esp8266
                 int speed1 = abs(_speed);
                 int speed2 = abs((int)_accelSpeed);
                 int maxSpeed = maxMacro(speed1, speed2);
@@ -534,12 +535,12 @@ private:
         }
     }
 
-    int _plannerPrd = 15000;
+    uint16_t _plannerPrd = 15000;
 #endif
 
     // ======================= SPEED PLANNER =======================
     float _accelTime = 0;
-    int _smoothPlannerPrd = 15000;
+    uint16_t _smoothPlannerPrd = 15000;
     uint32_t _smoothPlannerTime = 0;
     uint32_t _plannerTime = 0;
     

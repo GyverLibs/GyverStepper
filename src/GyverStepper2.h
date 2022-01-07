@@ -198,7 +198,7 @@ public:
         return 1;
     }
     
-    #ifndef ESP8266
+    #ifdef __AVR__
     void setSpeed(int speed) {
         setSpeed((int32_t)speed);
     }
@@ -343,7 +343,7 @@ public:
         } else changeSett = 1;      // иначе флаг на изменение
     }
     
-    #ifndef ESP8266
+    #ifdef __AVR__
     void setMaxSpeed(int speed) {
         setMaxSpeed((int32_t)speed);
     }

@@ -365,7 +365,7 @@ private:
         uint32_t nextS = calcS(0);
         
         // поиск максимальной конечной скорости
-        for (int i = 0; i < bufV.available() - 1; i++) {
+        for (uint16_t i = 0; i < bufV.available() - 1; i++) {
             int32_t dn0[_AXLES];
             for (int j = 0; j < _AXLES; j++) dn0[j] = bufP[j].get(i + 1) - bufP[j].get(i);  // расстояние между точками (катеты)
             uint32_t S1 = nextS;                                                            // "гипотенуза" (на 1 шаге посчитана выше)
@@ -391,7 +391,7 @@ private:
         }
 
         // уменьшаем переходные скорости на траектории
-        for (int i = 0; i < bufV.available() - 1; i++) {
+        for (uint16_t i = 0; i < bufV.available() - 1; i++) {
             uint32_t v0 = bufV.get(i);
             uint32_t v1 = bufV.get(i + 1);
             uint32_t maxV = sqrt(2L * a * bufS.get(i) + (uint32_t)v0 * v0);
