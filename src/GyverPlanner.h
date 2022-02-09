@@ -383,20 +383,21 @@ private:
     }
     
     #ifdef GS_FAST_PROFILE
+    // массивы шагов и периодов для быстрого профиля скорости
     uint32_t prfS[GS_FAST_PROFILE], prfP[GS_FAST_PROFILE];
     #endif
     
-    uint32_t us;
-    int32_t tar[_AXLES], nd[_AXLES], dS[_AXLES];
-    int32_t step, substep, S, s1, s2, so1;
-    uint32_t tmr, us0, usMin, us10;
-    uint16_t a, na;
-    int16_t stopStep;
-    float V, nV;    
-    uint8_t status = 0, speedAxis = 0;
-    uint8_t shift = 0;
+    uint32_t us;    // период шагов
+    int32_t tar[_AXLES], nd[_AXLES], dS[_AXLES];    // цель, переменная Брезенхема, смещение по оси
+    int32_t step, substep, S, s1, s2, so1;          // шаги на текущем участке, дробные шаги, длина участка, (s1,s2,so1) - для расчёта трапеций
+    uint32_t tmr, us0, usMin, us10;     // таймер тика, время первого шага, мин. период шага, сдвинутый на 10 us
+    uint16_t a, na;                     // ускорение, буфер ускорения для применения после остановки
+    int16_t stopStep;                   // шагов до остановки
+    float V, nV;                        // скорость, буфер скорости для применения после остановки
+    uint8_t status = 0, speedAxis = 0;  // статус, ось в режиме скорости
+    uint8_t shift = 0;                  // сдвиг для повышения разрешения Брезенхема
     bool readyF = true;
-    bool changeSett = 0;
+    bool changeSett = 0;                // флаг, что изменились настройки
     Stepper<_DRV>* steppers[_AXLES];
 };
 #endif
