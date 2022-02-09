@@ -220,6 +220,12 @@ public:
     // =========================== POSITION MODE ===========================
     // установить цель и опционально режим
     void setTarget(int32_t ntar, GS_posType type = ABSOLUTE) {
+        if (sp0) {  // нулевая скорость
+            brake();
+            readyF = 1;
+            return;
+        }
+        
         if (changeSett) {       // применяем настройки
             usMin = usMinN;
             #ifndef GS_NO_ACCEL
@@ -331,7 +337,11 @@ public:
     
     // установить скорость движения при следовании к позиции в шагах/сек
     void setMaxSpeed(int32_t speed) {
-        if (speed == 0) return;
+        if (speed == 0) {
+            sp0 = 1;
+            return;
+        }
+        sp0 = 0;
         usMinN = 1000000L / speed;
         if (!status) {              // применяем, если мотор остановлен
             usMin = usMinN;
@@ -351,7 +361,11 @@ public:
     
     // установить скорость движения при следовании к позиции в шагах/сек, float
     void setMaxSpeed(float speed) {
-        if (speed == 0) return;
+        if (speed == 0) {
+            sp0 = 1;
+            return;
+        }
+        sp0 = 0;
         usMinN = 1000000.0 / speed;
         if (!status) {              // применяем, если мотор остановлен
             usMin = usMinN;
@@ -461,13 +475,14 @@ private:
     bool readyF = 0;
     bool changeSett = 0;
     uint32_t usMinN;
+    bool sp0 = 0;
     
     #ifndef GS_NO_ACCEL
     uint16_t a, V;
     uint16_t na;
     int16_t stopStep;
-    uint32_t S, us0, us10;
-    int32_t s1, s2, so1, steps;
+    uint32_t us0, us10;
+    int32_t S, s1, s2, so1, steps;
     int32_t bufT = 0;
     bool revF = false;
     

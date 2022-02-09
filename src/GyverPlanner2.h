@@ -132,15 +132,19 @@ public:
 
     // остановить плавно (с заданным ускорением)
     void stop() {
-        if (us == 0 || status == 0 || status == 4) return;  // мы и так уже остановились, успокойся
-        if (a == 0 || us > GP_MIN_US) {                     // нет ускорения или медленно едем - дёргай ручник
+        // мы и так уже остановились, успокойся
+        if (((uint32_t)us << shift) == 0 || status == 0 || status == 4) return;
+        // нет ускорения или медленно едем - дёргай ручник
+        if (a == 0 || ((uint32_t)us << shift) > GP_MIN_US) {
             brake();
             return;
         }
         status = 4;
+        us <<= shift;
         stopStep = 1000000ul / us;                              // наша скорость
         stopStep = (uint32_t)stopStep * stopStep / (2 * a);     // дистанция остановки
         us10 = (uint32_t)us << 10;
+        us >>= shift;
     }
     
     // начать работу
@@ -196,6 +200,7 @@ public:
         speedAxis = axis;                           // запомнили ось
         steppers[axis]->dir = speed > 0 ? 1 : -1;   // направление
         us = 1000000.0 / abs(speed);                // период
+        us >>= shift;
         status = 5;
     }
     
@@ -219,15 +224,17 @@ public:
         }
         // здесь step - шаг вдоль общей линии траектории длиной S
         // шаги на проекциях получаются через алгоритм Брезенхема
-        step++;
         for (uint8_t i = 0; i < _AXLES; i++) {
             // http://members.chello.at/easyfilter/bresenham.html
             nd[i] -= dS[i];
             if (nd[i] < 0) {
-                nd[i] += S;
+                nd[i] += (int32_t)S << shift;
                 steppers[i]->step();
             }
         }
+        
+        if (shift) if (++substep & ((1 << shift) - 1)) return status > 1;  // пропускаем сабшаги
+        step++;
         
         // плавная остановка
         if (status == 4) {
@@ -240,7 +247,8 @@ public:
                 setTarget();
                 us = us10 >> 10;
             }
-            if (stopStep <= 0 || us >= us0) brake();            
+            if (stopStep <= 0 || us >= us0) brake();
+            us >>= shift;
             return status > 1;
         }
 
@@ -284,6 +292,7 @@ public:
             } else status = 1;              // иначе проверяем буфер
             next();
         }
+        us >>= shift;
         return (status > 1);
     }
     
@@ -330,7 +339,7 @@ public:
         
     // время до следующего tick, мкс
     uint32_t getPeriod() {
-        return us;
+        return us << shift;
     }
     
     // статус планировщика
@@ -436,7 +445,13 @@ private:
             return 0;
         }
         
-        for (int i = 0; i < _AXLES; i++) nd[i] = S / 2u;    // записываем половину
+        shift = 0;
+        for (; shift < 5; shift++) {
+            if ((uint32_t)usMin >> shift < 200 || (0xfffffffl >> shift) < S) break;
+        }
+        shift--;
+        int32_t subS = ((int32_t)S << shift) >> 1;
+        for (int i = 0; i < _AXLES; i++) nd[i] = subS;    // записываем половину
         
         if (a > 0) {
             int32_t v1 = bufV.get(0);   // скорость начала отрезка
@@ -462,12 +477,13 @@ private:
             us = usMin;
         }
         
-        step = 0;
+        step = substep = 0;
         readyF = false;
         if (status != 4) {    // если это не стоп
             if (bufL.get(1) == 1) status = 3;
             else status = 2;
             us10 = us << 10;
+            us >>= shift;
         }
         return 1;
     }
@@ -506,19 +522,19 @@ private:
 
     uint32_t us;
     int32_t nd[_AXLES], dS[_AXLES];
-    int32_t step, S, s1, s2, so1, so2;
+    int32_t step, substep, S, s1, s2, so1, so2;
     uint32_t tmr, us0, usMin, us10;
     uint16_t a, na;
     int16_t stopStep;
     float V, nV;    
     uint8_t status = 0, speedAxis = 0, maxAx;
+    uint8_t shift = 0;
     bool readyF = true;
     float dtA = 0.3;
     
     int8_t block = 100;
     uint32_t blockCalc = 20000;
     bool changeSett = 0;
-    
     
     Stepper<_DRV>* steppers[_AXLES];    
     FIFO<int32_t, _BUF> bufP[_AXLES];

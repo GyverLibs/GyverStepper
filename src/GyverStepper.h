@@ -52,6 +52,7 @@
     v2.2.0 - добавлен скоростной профиль GS_FAST_PROFILE для GStepper2, GPlanner, GPlanner2. Поддержка режима "слежения" для GStepper2
     v2.2.1 - небольшая оптимизация SRAM
 	v2.3 - fix compiler warnings, поддержка esp32
+    v2.4 - повышена плавность движения шаговиков в Planner и Planner2. Исправлена бага в Stepper2
 */
 
 /*

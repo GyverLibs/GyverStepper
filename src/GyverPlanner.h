@@ -129,7 +129,8 @@ public:
 
     // остановить плавно (с заданным ускорением)
     void stop() {
-        if (us == 0 || a == 0 || us > GP_MIN_US || status == 3 || !status) {   // нет ускорения или крутим или медленно едем - дёргай ручник
+        // нет ускорения или крутим или медленно едем - дёргай ручник
+        if (us == 0 || a == 0 || ((uint32_t)us << shift) > GP_MIN_US || status == 3 || !status) {
             brake();
             return;
         }
@@ -139,9 +140,11 @@ public:
                 return;
             }
             status = 4;
+            us <<= shift;
             stopStep = 1000000ul / us;                              // наша скорость
             stopStep = (uint32_t)stopStep * stopStep / (2 * a);     // дистанция остановки
             us10 = (uint32_t)us << 10;
+            us >>= shift;
         }
     }
 
@@ -185,13 +188,10 @@ public:
         S = 0;                                              // путь
         for (uint8_t i = 0; i < _AXLES; i++) {              // для всех осей            
             if (type == RELATIVE) target[i] += steppers[i]->pos;    // если относительное смещение - прибавляем текущий pos
-            tar[i] = target[i];                             // запоминаем цель
-            dS[i] = abs(tar[i] - steppers[i]->pos);         // модуль ошибки по оси            
-            steppers[i]->dir = (steppers[i]->pos < tar[i]) ? 1 : -1;  // направление движения по оси
-            if (dS[i] > S) {                                // ищем максимальное отклонение
-                S = dS[i];
-                maxAx = i;                                  // запоминаем номер оси
-            }
+            tar[i] = target[i];                                     // запоминаем цель
+            dS[i] = abs(tar[i] - steppers[i]->pos);                 // модуль ошибки по оси            
+            steppers[i]->dir = (steppers[i]->pos < tar[i]) ? 1 : -1;// направление движения по оси
+            if (dS[i] > S) S = dS[i];                               // ищем максимальное отклонение
         }
         if (S == 0) {          // путь == 0, мы никуда не едем
             readyF = true;     // готовы к следующей точке
@@ -199,11 +199,18 @@ public:
             return 0;
         }
         
-        for (int i = 0; i < _AXLES; i++) nd[i] = S / 2u;    // записываем половину
+        shift = 0;
+        for (; shift < 5; shift++) {
+            if ((uint32_t)usMin >> shift < 200 || (0xfffffffl >> shift) < S) break;
+        }
+        shift--;
+        int32_t subS = ((int32_t)S << shift) >> 1;
+        for (int i = 0; i < _AXLES; i++) nd[i] = subS;    // записываем половину
         
         // расчёт точек смены характера движения
         // s1 - окончание разгона, s1-s2 - равномерное движение, s2 - торможение
         if (a > 0) {                                // ускорение задано
+            us <<= shift;
             if (us != 0 && us < GP_MIN_US) {        // мы движемся! ААА!
                 int32_t v1 = 1000000L / us;
                 if (2L * V * V - (int32_t)v1 * v1 > 2L * a * S) {  // треугольник
@@ -232,7 +239,8 @@ public:
         }
         // здесь us10 - us*1024 для повышения разрешения микросекунд в 1024 раз
         us10 = (uint32_t)us << 10;
-        step = 0;
+        us >>= shift;
+        step = substep = 0;
         readyF = false;
         status = 1;        
         return 1;
@@ -259,6 +267,7 @@ public:
         speedAxis = axis;                           // запомнили ось
         steppers[axis]->dir = speed > 0 ? 1 : -1;   // направление
         us = 1000000.0 / abs(speed);                // период
+        us >>= shift;
         status = 3;
     }
     
@@ -282,19 +291,19 @@ public:
         // здесь step - шаг вдоль общей линии траектории длиной S
         // шаги на проекциях получаются через алгоритм Брезенхема
 
-        step++;
+        
         for (uint8_t i = 0; i < _AXLES; i++) {
             // http://members.chello.at/easyfilter/bresenham.html
-            if (i == maxAx) steppers[i]->step();    // этот движется всегда
-            else {                                  // а эти по Брезенхему
-                nd[i] -= dS[i];
-                if (nd[i] < 0) {
-                    nd[i] += S;
-                    steppers[i]->step();
-                }
+            nd[i] -= dS[i];
+            if (nd[i] < 0) {
+                nd[i] += (int32_t)S << shift;
+                steppers[i]->step();
             }
         }
         
+        if (shift) if (++substep & ((1 << shift) - 1)) return status;  // пропускаем сабшаги
+        
+        step++;
         // плавная остановка
         if (status == 4) {
             stopStep--;
@@ -302,6 +311,7 @@ public:
             us = (uint32_t)us10 >> 10;
             us = constrain(us, usMin, us0);
             if (stopStep <= 0 || step >= S || us >= us0) brake();
+            us >>= shift;
             return status;
         }
 
@@ -339,11 +349,12 @@ public:
             if (status == 1) readyF = true;
             brake();
         }
+        us >>= shift;
         return status;
     }
     
     uint32_t getPeriod() {
-        return us;
+        return us << shift;
     }
     
     // текущий статус: 0 - стоим, 1 - едем, 2 - едем к точке паузы, 3 - крутимся со скоростью, 4 - тормозим
@@ -377,12 +388,13 @@ private:
     
     uint32_t us;
     int32_t tar[_AXLES], nd[_AXLES], dS[_AXLES];
-    int32_t step, S, s1, s2, so1;
+    int32_t step, substep, S, s1, s2, so1;
     uint32_t tmr, us0, usMin, us10;
     uint16_t a, na;
     int16_t stopStep;
     float V, nV;    
-    uint8_t status = 0, speedAxis = 0, maxAx;
+    uint8_t status = 0, speedAxis = 0;
+    uint8_t shift = 0;
     bool readyF = true;
     bool changeSett = 0;
     Stepper<_DRV>* steppers[_AXLES];
