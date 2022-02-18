@@ -53,6 +53,7 @@
     v2.2.1 - небольшая оптимизация SRAM
 	v2.3 - fix compiler warnings, поддержка esp32
     v2.4 - повышена плавность движения шаговиков в Planner и Planner2. Исправлена бага в Stepper2
+    v2.5 - исправлено плавное изменение скорости для KEEP_SPEED
 */
 
 /*
@@ -179,8 +180,7 @@ void attachPower(handler)
 // =========== МАКРОСЫ ===========
 #define degPerMinute(x) ((x)/60.0f)
 #define degPerHour(x) ((x)/3600.0f)
-#define _sign(x) ((x) >= 0 ? 1 : -1)	// знак числа
-#define maxMacro(a,b) ((a)>(b)?(a):(b))	// привет esp
+#define _sign(x) ((x) >= 0 ? 1 : -1)	    // знак числа
 
 // =========== КОНСТАНТЫ ===========
 #define _MIN_SPEED_FP 5		// мин. скорость для движения в FOLLOW_POS с ускорением
@@ -203,10 +203,11 @@ class GStepper : public Stepper<_DRV, _TYPE> {
 public:	
     // конструктор
     GStepper(int stepsPerRev, uint8_t pin1 = 255, uint8_t pin2 = 255, uint8_t pin3 = 255, uint8_t pin4 = 255, uint8_t pin5 = 255) : 
-    _stepsPerDeg(stepsPerRev / 360.0), Stepper<_DRV, _TYPE> (pin1, pin2, pin3, pin4, pin5) {
+    Stepper<_DRV, _TYPE> (pin1, pin2, pin3, pin4, pin5) {
         // умолчания
         setMaxSpeed(300);
         setAcceleration(300);
+        _stepsPerDeg = (stepsPerRev / 360.0);
     }
     
     // ============================== TICK ==============================
@@ -218,7 +219,7 @@ public:
             if (!_curMode && _accel != 0 && _maxSpeed >= _MIN_SPEED_FP) planner();	// планировщик скорости FOLLOW_POS быстрый		
             #endif
             
-            if (_smoothStart && _curMode) smoothSpeedPlanner();		// планировщик скорости KEEP_SPEED
+            if (_curMode && _accel != 0) smoothSpeedPlanner();		// планировщик скорости KEEP_SPEED
             
             if (tickUs - _prevTime >= stepTime) {					// основной таймер степпера
                 _prevTime = tickUs;				
@@ -295,7 +296,7 @@ public:
     // установка максимальной скорости в шагах/секунду
     void setMaxSpeed(float speed) {
         speed = abs(speed);
-        _maxSpeed = maxMacro(speed, _MIN_STEP_SPEED);	// 1 шаг в час минимум
+        _maxSpeed = max(speed, _MIN_STEP_SPEED);	// 1 шаг в час минимум
         // считаем stepTime для низких скоростей или отключенного ускорения
         if (_accel == 0 || _maxSpeed < _MIN_SPEED_FP) stepTime = 1000000.0 / _maxSpeed;
         
@@ -367,22 +368,18 @@ public:
     void setSpeed(float speed, bool smooth = false) {	// smooth убран!
         // 1 шаг в час минимум
         _speed = speed;
-        if (abs(_speed) < _MIN_STEP_SPEED) _speed = _MIN_STEP_SPEED * _sign(_speed);
-        enable();
+        _stopF = (_speed == 0);
+        if (_speed == 0 && _accelSpeed == 0) return;
         dir = (_speed > 0) ? 1 : -1;
+        if (abs(_speed) < _MIN_STEP_SPEED) _speed = _MIN_STEP_SPEED * dir;
+        
         if (_accel != 0) {							// плавный старт		
             if (_accelSpeed != _speed) {
-                _smoothStart = true;
-                #ifdef __AVR__
-                _smoothPlannerPrd = map(max(abs((int)_speed), abs((int)_accelSpeed)), 1000, 20000, 15000, 1000);
-                #else
-                // горячий привет авторам ядра esp8266
-                int speed1 = abs(_speed);
-                int speed2 = abs((int)_accelSpeed);
-                int maxSpeed = maxMacro(speed1, speed2);
-                _smoothPlannerPrd = map(maxSpeed, 1000, 20000, 15000, 1000);
-                #endif			
-                _smoothPlannerPrd = constrain(_smoothPlannerPrd, 15000, 1000);
+                int speed1 = (int)abs(_speed);
+                int speed2 = (int)abs(_accelSpeed);
+                _speedPlannerPrd = map(max(speed1, speed2), 1000, 20000, 15000, 2000);
+                _speedPlannerPrd = constrain(_speedPlannerPrd, 15000, 2000);
+                stepTime = abs(1000000.0 / _accelSpeed);
             }
         } else {				// резкий старт
             if (speed == 0) { 	// скорость 0? Отключаемся и выходим
@@ -390,8 +387,9 @@ public:
                 return;
             }	
             _accelSpeed = _speed;
-            stepTime = round(1000000.0 / abs(_speed));
+            stepTime = abs(1000000.0 / _speed);
         }
+        enable();
     }
     
     // установка целевой скорости в градусах/секунду
@@ -412,7 +410,6 @@ public:
     // установка режима работы
     void setRunMode(GS_runMode mode){
         _curMode = mode; 
-        if (mode == FOLLOW_POS) _smoothStart = false;
         resetTimers();
     }
     
@@ -468,7 +465,7 @@ private:
     }
     // аккуратно сбросить все таймеры
     void resetTimers() {        
-        _smoothPlannerTime = _plannerTime = _prevTime = micros();        
+        _speedPlannerTime = _plannerTime = _prevTime = micros();        
     }
     
 
@@ -541,40 +538,30 @@ private:
 
     // ======================= SPEED PLANNER =======================
     float _accelTime = 0;
-    uint16_t _smoothPlannerPrd = 15000;
-    uint32_t _smoothPlannerTime = 0;
+    uint16_t _speedPlannerPrd = 15000;
+    uint32_t _speedPlannerTime = 0;
     uint32_t _plannerTime = 0;
     
     // планировщик разгона для KEEP_SPEED
     void smoothSpeedPlanner() {
-        if (tickUs - _smoothPlannerTime >= _smoothPlannerPrd) {
-            _smoothPlannerTime = tickUs;
-            int8_t dir = _sign(_speed - _accelSpeed);	// 1 - разгон, -1 - торможение
-            _accelSpeed += (_accelTime * _smoothPlannerPrd * dir);			
+        if (tickUs - _speedPlannerTime >= _speedPlannerPrd) {
+            _speedPlannerTime = tickUs;
+            _accelSpeed += (_accelTime * _speedPlannerPrd * _sign(_speed - _accelSpeed));			
             dir = _sign(_accelSpeed);
-            
-            // прекращение работы планировщика
-            if ((dir == 1 && _accelSpeed >= _speed) || (dir == -1 && _accelSpeed <= _speed)) {
-                _accelSpeed = _speed;
-                _smoothStart = false;
-                if (abs(_speed) <= _MIN_STEP_SPEED) {		// если нужно остановиться
-                    brake();
-                    return;		// выходим
-                }
-            }
             stepTime = abs(1000000.0 / _accelSpeed);
+            if (_stopF && abs(_accelSpeed) <= _MIN_STEP_SPEED) brake();
         }
     }
     
     // ========================= VARIABLES =========================
-    const float _stepsPerDeg;
+    bool _stopF = 0;
+    float _stepsPerDeg;
     uint32_t _prevTime = 0;
     float _accelSpeed = 0;
     int32_t _target = 0;
     volatile uint32_t tickUs = 0;
     bool _workState = false;
     bool _autoPower = false;
-    bool _smoothStart = false;
     float _stopSpeed = 0;
     float _maxSpeed = 300;
     float _speed = 0;

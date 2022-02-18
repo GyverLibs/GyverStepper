@@ -14,8 +14,8 @@
 
 // МОТОРЫ ДОЛЖНЫ БЫТЬ С ОДИНАКОВЫМ ТИПОМ ДРАЙВЕРА
 // вот они красавцы
-Stepper<STEPPER2WIRE> stepper1(2, 3);
-Stepper<STEPPER2WIRE> stepper2(4, 5);
+Stepper<STEPPER2WIRE> stepper1(2, 5);
+Stepper<STEPPER2WIRE> stepper2(3, 6);
 
 // создаём планировщик, указываем в <> тип драйвера КАК У МОТОРОВ
 // и количество осей, равное количеству моторов (любое больше 1)

@@ -7,8 +7,8 @@ int32_t path[pointAm + 1 + 1][2];     // буфер круга
 // +1 на стартовую точку +1 на замыкание круга
 
 #include "GyverPlanner2.h"
-Stepper<STEPPER2WIRE> stepper1(2, 3);
-Stepper<STEPPER2WIRE> stepper2(4, 5);
+Stepper<STEPPER2WIRE> stepper1(2, 5);
+Stepper<STEPPER2WIRE> stepper2(3, 6);
 GPlanner2<STEPPER2WIRE, 2> planner;
 
 void setup() {

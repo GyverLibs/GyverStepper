@@ -14,8 +14,8 @@ int path[][2] = {
 int nodeAmount = sizeof(path) / 4;
 
 #include "GyverPlanner2.h"
-Stepper<STEPPER2WIRE> stepper1(2, 3);
-Stepper<STEPPER2WIRE> stepper2(4, 5);
+Stepper<STEPPER2WIRE> stepper1(2, 5);
+Stepper<STEPPER2WIRE> stepper2(3, 6);
 GPlanner2<STEPPER2WIRE, 2> planner;
 
 void setup() {

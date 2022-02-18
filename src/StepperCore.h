@@ -199,12 +199,12 @@ private:
     // шажочек степдир
     void stepDir() {
         if (_TYPE == STEPPER_PINS) {
-            setPin(1, (dir > 0 ? _globDir : !_globDir) );	// DIR
+            setPin(1, (dir > 0) ^ _globDir);	// DIR
             setPin(0, 1);	// step HIGH
             if (DRIVER_STEP_TIME > 0) delayMicroseconds(DRIVER_STEP_TIME);
             setPin(0, 0);	// step LOW
         } else if (*_step) {
-            _step(dir > 0 ? _globDir : !_globDir);
+            _step((dir > 0) ^ _globDir);
         }
     }
     

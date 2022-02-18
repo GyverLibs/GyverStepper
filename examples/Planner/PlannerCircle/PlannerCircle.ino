@@ -6,8 +6,8 @@ int radius = 100;           // радиус круга
 int32_t path[pointAm + 2][2];     // буфер круга
 
 #include "GyverPlanner.h"
-Stepper<STEPPER2WIRE> stepper1(2, 3);
-Stepper<STEPPER2WIRE> stepper2(4, 5);
+Stepper<STEPPER2WIRE> stepper1(2, 5);
+Stepper<STEPPER2WIRE> stepper2(3, 6);
 GPlanner<STEPPER2WIRE, 2> planner;
 
 void setup() {
