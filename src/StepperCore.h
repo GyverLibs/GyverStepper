@@ -102,7 +102,10 @@ public:
                 setPin(3, 0);
             }
             if (_enPin != 255) digitalWrite(_enPin, !_enDir);
-        } else if (*_power) _power(0);
+        } else {
+            if (*_power) _power(0);
+            if (*_step && (_DRV == STEPPER4WIRE || _DRV == STEPPER4WIRE_HALF)) _step(0);
+        }
     }
     
     // включить питание и EN
@@ -111,7 +114,10 @@ public:
             // подадим прошлый сигнал на мотор, чтобы вал зафиксировался
             if (_DRV == STEPPER4WIRE || _DRV == STEPPER4WIRE_HALF) step4();	
             if (_enPin != 255) digitalWrite(_enPin, _enDir);
-        } else if (*_power) _power(1);
+        } else {
+            if (*_power) _power(1);
+            if (*_step && (_DRV == STEPPER4WIRE || _DRV == STEPPER4WIRE_HALF)) step4();
+        }
     }
     
     // подключить обработчик шага
@@ -199,7 +205,10 @@ private:
     // шажочек степдир
     void stepDir() {
         if (_TYPE == STEPPER_PINS) {
-            setPin(1, (dir > 0) ^ _globDir);	// DIR
+            if (_pdir != dir) {
+                _pdir = dir;
+                setPin(1, (dir > 0) ^ _globDir);	// DIR
+            }
             setPin(0, 1);	// step HIGH
             if (DRIVER_STEP_TIME > 0) delayMicroseconds(DRIVER_STEP_TIME);
             setPin(0, 0);	// step LOW
@@ -211,6 +220,7 @@ private:
     int8_t _enPin = 255;
     bool _enDir = false;
     bool _globDir = false;
+    int8_t _pdir = 0;
     int8_t thisStep = 0;
     
     void (*_step)(uint8_t a) = NULL;

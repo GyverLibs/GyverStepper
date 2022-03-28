@@ -3,6 +3,7 @@
 // включаем быстрый профиль, 10 участков
 #define GS_FAST_PROFILE 10
 #include "GyverStepper2.h"
+//GStepper2<STEPPER4WIRE> stepper(2048, 5, 3, 4, 2);
 GStepper2<STEPPER2WIRE> stepper(2048, 2, 5);
 
 uint32_t tar = 60000;

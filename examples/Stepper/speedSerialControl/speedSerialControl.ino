@@ -5,7 +5,8 @@
 // отправь r для скорости 100 град/сек
 
 #include <GyverStepper.h>
-GStepper<STEPPER4WIRE> stepper(2048, 5, 3, 4, 2);
+//GStepper<STEPPER4WIRE> stepper(2048, 5, 3, 4, 2);
+GStepper<STEPPER2WIRE> stepper(2048, 2, 5);
 
 void setup() {
   Serial.begin(9600);

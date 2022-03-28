@@ -69,6 +69,7 @@
     void reset();                               // сбросить текущую позицию в 0
     
     // всякое
+    void autoPower(bool mode);                  // автоотключение мотора при достижении позиции - true (по умолч. false)
     uint32_t getPeriod();                       // получить текущий период тиков
     void brake();                               // резко остановить мотор
     void pause();                               // пауза - доехать до заданной точки и ждать (ready() не вернёт true, пока ты на паузе)
@@ -151,7 +152,7 @@ public:
                 #endif
             } else {                                             // приехали
                 if (revF) {
-                    status = 0;
+                    brake();
                     setTarget(bufT);
                     return status;
                 }
@@ -195,6 +196,7 @@ public:
         dir = (speed > 0) ? 1 : -1;
         us = 1000000L / abs(speed);
         status = 3;
+        if (autoP) enable();
         return 1;
     }
     
@@ -284,6 +286,7 @@ public:
     #endif
         dir = (pos < tar) ? 1 : -1;
         status = 1;
+        if (autoP) enable();
         readyF = 0;
     }
     
@@ -410,9 +413,15 @@ public:
     #endif
     }
     
+    // автоотключение мотора при достижении позиции - true (по умолч. false)
+    void autoPower(bool mode) {
+        autoP = mode;
+    }
+    
     // остановить мотор
     void brake() {
         status = 0;
+        if (autoP) disable();
     }
     
     // пауза (доехать до заданной точки и ждать). ready() не вернёт true, пока ты на паузе
@@ -447,6 +456,8 @@ public:
     using Stepper<_DRV, _TYPE>::pos;
     using Stepper<_DRV, _TYPE>::dir;
     using Stepper<_DRV, _TYPE>::step;
+    using Stepper<_DRV, _TYPE>::enable;
+    using Stepper<_DRV, _TYPE>::disable;
 
 // ============================= PRIVATE =============================
 private:
@@ -474,6 +485,7 @@ private:
     uint8_t status = 0;
     bool readyF = 0;
     bool changeSett = 0;
+    bool autoP = false;
     uint32_t usMinN;
     bool sp0 = 0;
     

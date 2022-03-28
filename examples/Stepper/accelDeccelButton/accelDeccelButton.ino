@@ -2,7 +2,8 @@
 
 //#define SMOOTH_ALGORITHM
 #include <GyverStepper.h>
-GStepper<STEPPER2WIRE> stepper(800, 2, 3, 12);
+//GStepper<STEPPER4WIRE> stepper(2048, 5, 3, 4, 2);
+GStepper<STEPPER2WIRE> stepper(2048, 2, 5);
 
 
 void setup() {

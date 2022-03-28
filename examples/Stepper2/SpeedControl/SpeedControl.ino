@@ -1,7 +1,8 @@
 // крутим мотор. Отправляй в сериал целое число, шаг/сек
 
 #include "GyverStepper2.h"
-GStepper2<STEPPER2WIRE> stepper(2048, 2, 3);
+//GStepper2<STEPPER4WIRE> stepper(2048, 5, 3, 4, 2);
+GStepper2<STEPPER2WIRE> stepper(2048, 2, 5);
 
 void setup() {
   Serial.begin(9600);

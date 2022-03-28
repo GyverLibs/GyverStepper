@@ -1,4 +1,4 @@
-[![Foo](https://img.shields.io/badge/Version-2.5-brightgreen.svg?style=flat-square)](#versions)
+[![Foo](https://img.shields.io/badge/Version-2.6-brightgreen.svg?style=flat-square)](#versions)
 [![Foo](https://img.shields.io/badge/Website-AlexGyver.ru-blue.svg?style=flat-square)](https://alexgyver.ru/)
 [![Foo](https://img.shields.io/badge/%E2%82%BD$%E2%82%AC%20%D0%9D%D0%B0%20%D0%BF%D0%B8%D0%B2%D0%BE-%D1%81%20%D1%80%D1%8B%D0%B1%D0%BA%D0%BE%D0%B9-orange.svg?style=flat-square)](https://alexgyver.ru/support_alex/)
 
@@ -380,6 +380,7 @@ int32_t getCurrent();                       // получить текущую �
 void reset();                               // сбросить текущую позицию в 0
 
 // всякое
+void autoPower(bool mode);                  // автоотключение мотора при достижении позиции - true (по умолч. false)
 uint32_t getPeriod();                       // получить текущий период тиков
 void brake();                               // резко остановить мотор
 void pause();                               // пауза - доехать до заданной точки и ждать (ready() не вернёт true, пока ты на паузе)
@@ -781,6 +782,11 @@ void loop() {
 - v2.3 - fix compiler warnings, поддержка esp32
 - v2.4 - повышена плавность движения шаговиков в Planner и Planner2. Исправлена бага в Stepper2
 - v2.5 - исправлено плавное изменение скорости для KEEP_SPEED
+- v2.6
+    - disable() в виртуальном режиме отключает сигнал с мотора (для 4-проводных драйверов)
+    - улучшена производительность для step-dir драйверов
+    - добавил autoPower() в GStepper2
+    - исправлен рывок при смене направления в GStepper
 
 <a id="feedback"></a>
 ## Баги и обратная связь

@@ -54,6 +54,11 @@
 	v2.3 - fix compiler warnings, поддержка esp32
     v2.4 - повышена плавность движения шаговиков в Planner и Planner2. Исправлена бага в Stepper2
     v2.5 - исправлено плавное изменение скорости для KEEP_SPEED
+    v2.6
+        - disable() в виртуальном режиме отключает сигнал с мотора (для 4-проводных драйверов)
+        - улучшена производительность для step-dir драйверов
+        - добавил autoPower() в GStepper2
+        - исправлен рывок при смене направления в GStepper
 */
 
 /*
@@ -221,7 +226,7 @@ public:
             
             if (_curMode && _accel != 0) smoothSpeedPlanner();		// планировщик скорости KEEP_SPEED
             
-            if (tickUs - _prevTime >= stepTime) {					// основной таймер степпера
+            if (stepTime && tickUs - _prevTime >= stepTime) {       // основной таймер степпера
                 _prevTime = tickUs;				
                 
                 #ifdef SMOOTH_ALGORITHM
