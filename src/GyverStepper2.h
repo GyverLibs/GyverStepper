@@ -305,7 +305,11 @@ public:
     
     // получить целевую позицию
     int32_t getTarget() {
+        #ifndef GS_NO_ACCEL
         return revF ? bufT : tar;
+        #else
+        return tar;
+        #endif
     }
     
     // установить текущую позицию
