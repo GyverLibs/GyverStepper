@@ -213,8 +213,8 @@ public:
             us <<= shift;
             if (us != 0 && us < GP_MIN_US) {        // мы движемся! ААА!
                 int32_t v1 = 1000000L / us;
-                if (2L * V * V - (int32_t)v1 * v1 > 2L * a * S) {  // треугольник
-                    s1 = (2L * a * S - (int32_t)v1 * v1) / (4L * a);
+                if ((int32_t)V * V / a - ((int32_t)v1 * v1 / a >> 1) > S) {  // треугольник
+                    s1 = ((int32_t)S >> 1) - ((int32_t)v1 * v1 / a >> 2);
                     s2 = s1;
                 } else {                                // трапеция
                     s1 = ((int32_t)V * V - (int32_t)v1 * v1) / (2L * a);
@@ -222,7 +222,7 @@ public:
                 }
                 so1 = (int32_t)v1 * v1 / (2 * a);
             } else {                                    // не движемся
-                if ((int32_t)V * V > (int32_t)a * S) {  // треугольник
+                if ((int32_t)V * V / a > S) {           // треугольник
                     s1 = S / 2L;
                     s2 = s1;
                 } else {                                // трапеция

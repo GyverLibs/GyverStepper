@@ -60,6 +60,7 @@
         - добавил autoPower() в GStepper2
         - исправлен рывок при смене направления в GStepper
     v2.6.1 - поправлена бага в GStepper2
+    v2.6.2 - оптимизированы вычисления в GStepper2, GPlanner и GPlanner2
 */
 
 /*

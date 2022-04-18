@@ -457,15 +457,15 @@ private:
             int32_t v1 = bufV.get(0);   // скорость начала отрезка
             int32_t v2 = bufV.get(1);   // скорость конца отрезка
 
-            if (2L * V * V - (int32_t)v1 * v1 - (int32_t)v2 * v2 > 2L * a * S) {  // треугольник
-                s1 = (2L * a * S + (int32_t)v2 * v2 - (int32_t)v1 * v1) / (4L * a);
+            if ((V * V - ((int32_t)v1 * v1 >> 1) - ((int32_t)v2 * v2 >> 1)) / a > S) {  // треугольник
+                s1 = ((int32_t)S >> 1) + (((int32_t)v2 * v2 >> 2) - ((int32_t)v1 * v1 >> 2)) / a;
                 s2 = 0;
             } else {          // трапеция
                 s1 = ((int32_t)V * V - (int32_t)v1 * v1) / (2L * a);
                 s2 = S - ((int32_t)V * V - (int32_t)v2 * v2) / (2L * a);
             }
-            so1 = (int32_t)v1 * v1 / (2 * a);
-            so2 = (int32_t)v2 * v2 / (2 * a);
+            so1 = (int32_t)v1 * v1 / (2L * a);
+            so2 = (int32_t)v2 * v2 / (2L * a);
             if (status != 4) {
                 if (v1 == 0) us = us0;
                 else us = 1000000ul / v1;
