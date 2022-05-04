@@ -1,3 +1,5 @@
+This is an automatic translation, may be incorrect in some places. See sources and examples!
+
 # GyverStepper
 A powerful library for controlling stepper motors with Arduino
 - Support for 4 pin (step and half step) and STEP-DIR drivers
