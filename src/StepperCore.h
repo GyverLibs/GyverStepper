@@ -89,6 +89,9 @@ public:
     
     // инвертировать направление мотора
     void reverse(bool val) {
+        if (_DRV == STEPPER2WIRE) {
+            if (_TYPE == STEPPER_PINS && _globDir != val) setPin(1, (dir > 0) ^ val);
+        }
         _globDir = val;
     }
     
