@@ -798,6 +798,7 @@ void loop() {
 - v2.6.1 - поправлена бага в GStepper2
 - v2.6.2 - оптимизированы вычисления в GStepper2, GPlanner и GPlanner2
 - v2.6.3 - reverse() в step-dir драйвере теперь применяется сразу
+- v2.6.4 - исправлен RELATIVE setTarget() в GPlanner https://github.com/GyverLibs/GyverStepper/pull/11
 
 <a id="feedback"></a>
 ## Баги и обратная связь
