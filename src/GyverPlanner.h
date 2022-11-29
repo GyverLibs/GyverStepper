@@ -179,7 +179,7 @@ public:
     }
     
     // установить цель в шагах и начать движение. ~100 us
-    bool setTarget(int32_t target[], GS_posType type = ABSOLUTE) {   
+    bool setTarget(const int32_t target[], GS_posType type = ABSOLUTE) {   
         if (changeSett) {       // применяем настройки
             setMaxSpeed(nV);
             changeSett = 0;
@@ -187,8 +187,8 @@ public:
         
         S = 0;                                              // путь
         for (uint8_t i = 0; i < _AXLES; i++) {              // для всех осей            
-            if (type == RELATIVE) target[i] += steppers[i]->pos;    // если относительное смещение - прибавляем текущий pos
             tar[i] = target[i];                                     // запоминаем цель
+            if (type == RELATIVE) tar[i] += steppers[i]->pos;       // если относительное смещение - прибавляем текущий pos
             dS[i] = abs(tar[i] - steppers[i]->pos);                 // модуль ошибки по оси            
             steppers[i]->dir = (steppers[i]->pos < tar[i]) ? 1 : -1;// направление движения по оси
             if (dS[i] > S) S = dS[i];                               // ищем максимальное отклонение
@@ -246,7 +246,7 @@ public:
         return 1;
     }
     
-    bool setTarget(int16_t target[], GS_posType type = ABSOLUTE) {
+    bool setTarget(const int16_t target[], GS_posType type = ABSOLUTE) {
         int32_t tar[_AXLES];
         for (uint8_t i = 0; i < _AXLES; i++) tar[i] = target[i];
         return setTarget(tar, type);
