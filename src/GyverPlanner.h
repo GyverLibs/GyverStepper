@@ -139,12 +139,12 @@ public:
                 pause();        // значит флаг на паузу
                 return;
             }
-            status = 4;
             us <<= shift;
             stopStep = 1000000ul / us;                              // наша скорость
             stopStep = (uint32_t)stopStep * stopStep / (2 * a);     // дистанция остановки
             us10 = (uint32_t)us << 10;
             us >>= shift;
+            status = 4;
         }
     }
 
