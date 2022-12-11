@@ -391,7 +391,7 @@ public:
     
     // установить скорость движения при следовании к позиции в град/сек, float
     void setMaxSpeedDeg(float speed) {
-        setMaxSpeed((float)speed * stepsRev / 360.0);
+        setMaxSpeed(float(speed * stepsRev / 360.0));
     }
     
     // =========================== PLANNER ============================
