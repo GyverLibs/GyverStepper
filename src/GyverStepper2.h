@@ -94,7 +94,7 @@ public:
     GStepper2(uint16_t steps, uint8_t pin1 = 255, uint8_t pin2 = 255, uint8_t pin3 = 255, uint8_t pin4 = 255, uint8_t pin5 = 255) :
     Stepper<_DRV, _TYPE> (pin1, pin2, pin3, pin4, pin5) {
         stepsRev = steps;
-        setMaxSpeed(100);
+        setMaxSpeed(int32_t(100)); //Привёл тип данных к требуемому в строке 346 void setMaxSpeed(int32_t speed) 
         setAcceleration(200);
     }
     
