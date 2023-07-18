@@ -49,14 +49,16 @@ getSpeedDeg	KEYWORD2
 setRunMode	KEYWORD2
 enable	KEYWORD2
 disable	KEYWORD2
+power	KEYWORD2
 getState	KEYWORD2
+home	KEYWORD2
 getMinPeriod	KEYWORD2
 stepTime	KEYWORD2
 degPerMinute	KEYWORD2
 degPerHour	KEYWORD2
 attachStep	KEYWORD2
 attachPower	KEYWORD2
-
+setBacklash	KEYWORD2
 step	KEYWORD2
 
 addStepper	KEYWORD2

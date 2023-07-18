@@ -11,17 +11,17 @@
         - Следование к позиции с заданной скоростью (без ускорения)
     - Быстрый алгоритм управления шагами
     - Два алгоритма плавного движения
-        - Мой планировщик обеспечивает максимальную производительность: 
+        - Мой планировщик обеспечивает максимальную производительность:
         скорость до 30'000 шагов/сек с ускорением (активен по умолчанию)
-        - Модифицированный планировщик из AccelStepper: максимальную плавность и 
+        - Модифицированный планировщик из AccelStepper: максимальную плавность и
         скорость до 7'000 шагов/сек с ускорением (для активации пропиши дефайн SMOOTH_ALGORITHM)
     - Поддержка "виртуальных" драйверов
-    
+
     Алгоритм из AccelStepper: https://www.airspayce.com/mikem/arduino/AccelStepper/
     AlexGyver, alex@alexgyver.ru
     https://alexgyver.ru/
     MIT License
-    
+
     Версии:
     v1.1 - добавлена возможность плавного управления скоростью в KEEP_SPEED (см. пример accelDeccelButton)
     v1.2 - добавлена поддержка ESP8266
@@ -51,7 +51,7 @@
     v2.1.8 - оптимизация, исправлен KEEP_SPEED в GStepper
     v2.2.0 - добавлен скоростной профиль GS_FAST_PROFILE для GStepper2, GPlanner, GPlanner2. Поддержка режима "слежения" для GStepper2
     v2.2.1 - небольшая оптимизация SRAM
-	v2.3 - fix compiler warnings, поддержка esp32
+    v2.3 - fix compiler warnings, поддержка esp32
     v2.4 - повышена плавность движения шаговиков в Planner и Planner2. Исправлена бага в Stepper2
     v2.5 - исправлено плавное изменение скорости для KEEP_SPEED
     v2.6
@@ -71,15 +71,15 @@
 // steps - шагов на один оборот вала (для расчётов с градусами)
 // step, dir, pin1, pin2, pin3, pin4 - любые GPIO
 // en - пин отключения драйвера, любой GPIO
-GStepper<STEPPER2WIRE> stepper(steps, step, dir);						// драйвер step-dir
-GStepper<STEPPER2WIRE> stepper(steps, step, dir, en);					// драйвер step-dir + пин enable
-GStepper<STEPPER4WIRE> stepper(steps, pin1, pin2, pin3, pin4);			// драйвер 4 пин
-GStepper<STEPPER4WIRE> stepper(steps, pin1, pin2, pin3, pin4, en);		// драйвер 4 пин + enable
-GStepper<STEPPER4WIRE_HALF> stepper(steps, pin1, pin2, pin3, pin4);		// драйвер 4 пин полушаг
-GStepper<STEPPER4WIRE_HALF> stepper(steps, pin1, pin2, pin3, pin4, en);	// драйвер 4 пин полушаг + enable
+GStepper<STEPPER2WIRE> stepper(steps, step, dir);                        // драйвер step-dir
+GStepper<STEPPER2WIRE> stepper(steps, step, dir, en);                    // драйвер step-dir + пин enable
+GStepper<STEPPER4WIRE> stepper(steps, pin1, pin2, pin3, pin4);            // драйвер 4 пин
+GStepper<STEPPER4WIRE> stepper(steps, pin1, pin2, pin3, pin4, en);        // драйвер 4 пин + enable
+GStepper<STEPPER4WIRE_HALF> stepper(steps, pin1, pin2, pin3, pin4);        // драйвер 4 пин полушаг
+GStepper<STEPPER4WIRE_HALF> stepper(steps, pin1, pin2, pin3, pin4, en);    // драйвер 4 пин полушаг + enable
 
-GStepper<STEPPER2WIRE, STEPPER_VIRTUAL> stepper(steps);					// виртуальный драйвер step-dir
-GStepper<STEPPER4WIRE, STEPPER_VIRTUAL> stepper(steps);					// виртуальный драйвер 4 пин
+GStepper<STEPPER2WIRE, STEPPER_VIRTUAL> stepper(steps);                    // виртуальный драйвер step-dir
+GStepper<STEPPER4WIRE, STEPPER_VIRTUAL> stepper(steps);                    // виртуальный драйвер 4 пин
 
 // Здесь происходит движение мотора, вызывать как можно чаще!
 // Имеет встроенный таймер
@@ -98,23 +98,23 @@ void invertEn(bool rev);
 void setRunMode(GS_runMode mode);
 
 // Установка текущей позиции мотора в шагах и градусах
-void setCurrent(long pos);
+void setCurrent(int32_t pos);
 void setCurrentDeg(float pos);
 
 // Чтение текущей позиции мотора в шагах и градусах
-long getCurrent();
+int32_t getCurrent();
 float getCurrentDeg();
 
 // установка целевой позиции в шагах и градусах (для режима FOLLOW_POS)
 // type - ABSOLUTE или RELATIVE, по умолчанию стоит ABSOLUTE
 // RELATIVE считается от текущей позиции мотора
-void setTarget(long pos);
-void setTarget(long pos, GS_posType type);
+void setTarget(int32_t pos);
+void setTarget(int32_t pos, GS_posType type);
 void setTargetDeg(float pos);
 void setTargetDeg(float pos, GS_posType type);
 
 // Получение целевой позиции в шагах и градусах
-long getTarget();
+int32_t getTarget();
 float getTargetDeg();
 
 // Установка максимальной скорости (по модулю) в шагах/секунду и градусах/секунду (для режима FOLLOW_POS)
@@ -124,7 +124,7 @@ void setMaxSpeed(float speed);
 void setMaxSpeedDeg(float speed);
 
 // Установка ускорения в шагах и градусах в секунду (для режима FOLLOW_POS).
-// При значении 0 ускорение отключается и мотор работает 
+// При значении 0 ускорение отключается и мотор работает
 // по профилю постоянной максимальной скорости setMaxSpeed().
 // По умолч. 300
 void setAcceleration(int accel);
@@ -177,30 +177,31 @@ void attachPower(handler)
 
 // Раскомментируй для использования более плавного, но медленного алгоритма
 // Также дефайн можно прописать в скетче до подключения библиотеки!!! См. пример smoothAlgorithm
-//#define SMOOTH_ALGORITHM
+// #define SMOOTH_ALGORITHM
 
 #ifndef _GyverStepper_h
 #define _GyverStepper_h
 #include <Arduino.h>
+
 #include "GStypes.h"
 #include "StepperCore.h"
 
 // =========== МАКРОСЫ ===========
-#define degPerMinute(x) ((x)/60.0f)
-#define degPerHour(x) ((x)/3600.0f)
-#define _sign(x) ((x) >= 0 ? 1 : -1)	    // знак числа
+#define degPerMinute(x) ((x) / 60.0f)
+#define degPerHour(x) ((x) / 3600.0f)
+#define _sign(x) ((x) >= 0 ? 1 : -1)  // знак числа
 
 // =========== КОНСТАНТЫ ===========
-#define _MIN_SPEED_FP 5		// мин. скорость для движения в FOLLOW_POS с ускорением
-#define _MAX_PERIOD_FP (1000000L/_MIN_SPEED_FP)
-#define _MIN_STEP_SPEED (1.0f/3600)	// мин. скорость 1 шаг в час
+#define _MIN_SPEED_FP 5  // мин. скорость для движения в FOLLOW_POS с ускорением
+#define _MAX_PERIOD_FP (1000000L / _MIN_SPEED_FP)
+#define _MIN_STEP_SPEED (1.0 / 3600)  // мин. скорость 1 шаг в час
 
 enum GS_runMode {
     FOLLOW_POS,
     KEEP_SPEED,
 };
 
-enum GS_smoothType {	
+enum GS_smoothType {
     NO_SMOOTH,
     SMOOTH,
 };
@@ -208,74 +209,73 @@ enum GS_smoothType {
 // ============================== GS CLASS ==============================
 template <GS_driverType _DRV, GS_driverType _TYPE = STEPPER_PINS>
 class GStepper : public Stepper<_DRV, _TYPE> {
-public:	
+   public:
     // конструктор
-    GStepper(int stepsPerRev, uint8_t pin1 = 255, uint8_t pin2 = 255, uint8_t pin3 = 255, uint8_t pin4 = 255, uint8_t pin5 = 255) : 
-    Stepper<_DRV, _TYPE> (pin1, pin2, pin3, pin4, pin5) {
+    GStepper(int stepsPerRev, uint8_t pin1 = 255, uint8_t pin2 = 255, uint8_t pin3 = 255, uint8_t pin4 = 255, uint8_t pin5 = 255) : Stepper<_DRV, _TYPE>(pin1, pin2, pin3, pin4, pin5) {
         // умолчания
         setMaxSpeed(300);
         setAcceleration(300);
         _stepsPerDeg = (stepsPerRev / 360.0);
     }
-    
+
     // ============================== TICK ==============================
     // тикер, вызывать почаще. Возвращает true, если мотор всё ещё движется к цели
     bool tick() {
         if (_workState) {
             tickUs = micros();
-            #ifndef SMOOTH_ALGORITHM				
-            if (!_curMode && _accel != 0 && _maxSpeed >= _MIN_SPEED_FP) planner();	// планировщик скорости FOLLOW_POS быстрый		
-            #endif
-            
-            if (_curMode && _accel != 0) smoothSpeedPlanner();		// планировщик скорости KEEP_SPEED
-            
-            if (stepTime && tickUs - _prevTime >= stepTime) {       // основной таймер степпера
-                _prevTime = tickUs;				
-                
-                #ifdef SMOOTH_ALGORITHM
+#ifndef SMOOTH_ALGORITHM
+            if (!_curMode && _accel != 0 && _maxSpeed >= _MIN_SPEED_FP) planner();  // планировщик скорости FOLLOW_POS быстрый
+#endif
+
+            if (_curMode && _accel != 0) smoothSpeedPlanner();  // планировщик скорости KEEP_SPEED
+
+            if (stepTime && tickUs - _prevTime >= stepTime) {  // основной таймер степпера
+                _prevTime = tickUs;
+
+#ifdef SMOOTH_ALGORITHM
                 // плавный планировщик вызывается каждый шаг. Проверка остановки
                 if (!_curMode && _accel != 0 && _maxSpeed >= _MIN_SPEED_FP && !plannerSmooth()) {
                     brake();
                     return false;
                 }
-                #endif
-                
+#endif
+
                 // проверка остановки для быстрого планировщика, а также работы без ускорения
                 if (!_curMode && _target == pos) {
                     brake();
                     return false;
                 }
-                step();     // двигаем мотор
+                step();  // двигаем мотор
             }
         }
         return _workState;
-    }    
-    
+    }
+
     // ============================== SETTINGS ==============================
 
     // установка текущей позиции в шагах
-    void setCurrent(long npos) {
+    void setCurrent(int32_t npos) {
         pos = npos;
         _accelSpeed = 0;
     }
-    
+
     // установка текущей позиции в градусах
     void setCurrentDeg(float npos) {
         setCurrent((float)npos * _stepsPerDeg);
     }
-    
+
     // чтение текущей позиции в шагах
-    long getCurrent() {
+    int32_t getCurrent() {
         return pos;
     }
-    
+
     // чтение текущей позиции в градусах
     float getCurrentDeg() {
         return ((float)pos / _stepsPerDeg);
     }
 
     // установка целевой позиции в шагах
-    void setTarget(long npos, GS_posType type = ABSOLUTE) {
+    void setTarget(int32_t npos, GS_posType type = ABSOLUTE) {
         _target = type ? (npos + pos) : npos;
         if (_target != pos) {
             if (_accel == 0 || _maxSpeed < _MIN_SPEED_FP) {
@@ -285,64 +285,64 @@ public:
             enable();
         }
     }
-    
+
     // установка целевой позиции в градусах
-    void setTargetDeg(float npos, GS_posType type = ABSOLUTE) {
+    void setTargetDeg(double npos, GS_posType type = ABSOLUTE) {
         setTarget((float)npos * _stepsPerDeg, type);
     }
-    
+
     // получение целевой позиции в шагах
-    long getTarget() {
+    int32_t getTarget() {
         return _target;
     }
-    
+
     // целевой позиции в градусах
     float getTargetDeg() {
         return ((float)_target / _stepsPerDeg);
     }
 
     // установка максимальной скорости в шагах/секунду
-    void setMaxSpeed(float speed) {
+    void setMaxSpeed(double speed) {
         speed = abs(speed);
-        _maxSpeed = max(speed, _MIN_STEP_SPEED);	// 1 шаг в час минимум
+        _maxSpeed = max(speed, _MIN_STEP_SPEED);  // 1 шаг в час минимум
         // считаем stepTime для низких скоростей или отключенного ускорения
         if (_accel == 0 || _maxSpeed < _MIN_SPEED_FP) stepTime = 1000000.0 / _maxSpeed;
-        
-        #ifdef SMOOTH_ALGORITHM
+
+#ifdef SMOOTH_ALGORITHM
         _cmin = 1000000.0 / _maxSpeed;
-        if (_n > 0)	{
+        if (_n > 0) {
             _n = (float)_accelSpeed * _accelSpeed * _accelInv;
             plannerSmooth();
         }
-        #else
+#else
         // период планировщка в зависимости от макс. скорости
         _plannerPrd = map((int)_maxSpeed, 1000, 20000, 15000, 1000);
-        _plannerPrd = constrain(_plannerPrd, 15000, 1000);	
-        #endif
+        _plannerPrd = constrain(_plannerPrd, 15000, 1000);
+#endif
     }
-    
+
     // установка максимальной скорости в градусах/секунду
-    void setMaxSpeedDeg(float speed) {
-        setMaxSpeed((float)speed * _stepsPerDeg);
+    void setMaxSpeedDeg(double speed) {
+        setMaxSpeed(speed * _stepsPerDeg);
     }
 
     // установка ускорения в шагах/секунду^2
-    void setAcceleration(int accel)	{
-        _accel = abs(accel);
-        _accelInv = 0.5f / accel;
+    void setAcceleration(uint16_t accel) {
+        _accel = accel;
+        if (_accel) _accelInv = 0.5f / accel;
+        else _accelInv = 0;
         _accelTime = accel / 1000000.0f;
-        #ifdef SMOOTH_ALGORITHM
-        _n = _n * (_accel / accel);
-        _c0 = 0.676 * sqrt(2.0 / _accel) * 1000000.0;
+#ifdef SMOOTH_ALGORITHM
+        if (_accel) _c0 = 0.676 * sqrt(2.0 / _accel) * 1000000.0;
         plannerSmooth();
-        #endif
+#endif
     }
-    
+
     // установка ускорения в градусах/секунду^2
     void setAccelerationDeg(float accel) {
         setAcceleration(accel * _stepsPerDeg);
     }
-    
+
     // автоотключение питания при остановке
     void autoPower(bool mode) {
         _autoPower = mode;
@@ -353,19 +353,23 @@ public:
         if (_workState) {
             resetTimers();
             if (_curMode == FOLLOW_POS) {
+                if (!_accel) {
+                    brake();
+                    return;
+                }
                 _accelSpeed = 1000000.0f / stepTime * dir;
                 setTarget(pos + (float)_accelSpeed * _accelSpeed * _accelInv * dir);
-                //setMaxSpeed(abs(_accelSpeed));
+                // setMaxSpeed(abs(_accelSpeed));
                 _stopSpeed = abs(_accelSpeed);
-                #ifdef SMOOTH_ALGORITHM
+#ifdef SMOOTH_ALGORITHM
                 _n = (float)_accelSpeed * _accelSpeed * _accelInv;
-                #endif
+#endif
             } else {
                 setSpeed(0);
             }
         }
     }
-    
+
     // остановка и сброс позиции в 0
     void reset() {
         brake();
@@ -373,15 +377,15 @@ public:
     }
 
     // установка целевой скорости в шагах/секунду
-    void setSpeed(float speed, bool smooth = false) {	// smooth убран!
+    void setSpeed(float speed, bool smooth = false) {  // smooth убран!
         // 1 шаг в час минимум
         _speed = speed;
         _stopF = (_speed == 0);
         if (_speed == 0 && _accelSpeed == 0) return;
         dir = (_speed > 0) ? 1 : -1;
         if (abs(_speed) < _MIN_STEP_SPEED) _speed = _MIN_STEP_SPEED * dir;
-        
-        if (_accel != 0) {							// плавный старт		
+
+        if (_accel != 0) {  // плавный старт
             if (_accelSpeed != _speed) {
                 int speed1 = (int)abs(_speed);
                 int speed2 = (int)abs(_accelSpeed);
@@ -389,43 +393,43 @@ public:
                 _speedPlannerPrd = constrain(_speedPlannerPrd, 15000, 2000);
                 stepTime = abs(1000000.0 / _accelSpeed);
             }
-        } else {				// резкий старт
-            if (speed == 0) { 	// скорость 0? Отключаемся и выходим
+        } else {               // резкий старт
+            if (speed == 0) {  // скорость 0? Отключаемся и выходим
                 brake();
                 return;
-            }	
+            }
             _accelSpeed = _speed;
             stepTime = abs(1000000.0 / _speed);
         }
         enable();
     }
-    
+
     // установка целевой скорости в градусах/секунду
     void setSpeedDeg(float speed, bool smooth = false) {
         setSpeed(_stepsPerDeg * speed);
     }
-    
+
     // получение целевой скорости в шагах/секунду
     float getSpeed() {
         return (1000000.0 / stepTime * dir);
     }
-    
+
     // получение целевой скорости в градусах/секунду
     float getSpeedDeg() {
         return ((float)getSpeed() / _stepsPerDeg);
     }
 
     // установка режима работы
-    void setRunMode(GS_runMode mode){
-        _curMode = mode; 
-        resetTimers();
+    void setRunMode(GS_runMode mode) {
+        if (_curMode != mode) resetTimers();
+        _curMode = mode;
     }
-    
+
     // получить статус вкл/выкл
     bool getState() {
         return _workState;
     }
-    
+
     // включить мотор
     void enable() {
         _workState = true;
@@ -433,15 +437,15 @@ public:
         resetTimers();
         Stepper<_DRV, _TYPE>::enable();
     }
-    
+
     // резкая остановка
-    void brake() {		
+    void brake() {
         _workState = false;
         _stopSpeed = 0;
         resetMotor();
         if (_autoPower) Stepper<_DRV, _TYPE>::disable();
     }
-    
+
     // получить минимальный период, с которым нужно вызывать tick при заданной макс. скорости
     uint32_t getMinPeriod() {
         float curSpeed;
@@ -454,53 +458,51 @@ public:
 
     // время между шагами
     uint32_t stepTime = 10000;
-    
-    using Stepper<_DRV, _TYPE>::enable;
-    using Stepper<_DRV, _TYPE>::disable;
-    
-    // ========================= PRIVATE ==========================
-private:
+
     using Stepper<_DRV, _TYPE>::pos;
     using Stepper<_DRV, _TYPE>::dir;
     using Stepper<_DRV, _TYPE>::step;
-    
+    using Stepper<_DRV, _TYPE>::enable;
+    using Stepper<_DRV, _TYPE>::disable;
+
+    // ========================= PRIVATE ==========================
+   private:
     // сброс перемещения
     void resetMotor() {
         _accelSpeed = 0;
-        #ifdef SMOOTH_ALGORITHM
+#ifdef SMOOTH_ALGORITHM
         _n = 0;
-        #endif	
+#endif
     }
     // аккуратно сбросить все таймеры
-    void resetTimers() {        
-        _speedPlannerTime = _plannerTime = _prevTime = micros();        
+    void resetTimers() {
+        _speedPlannerTime = _plannerTime = _prevTime = micros();
     }
-    
 
 #ifdef SMOOTH_ALGORITHM
     // ========================= PLANNER 1 =========================
     // планировщик скорости из AccelStepper
-    bool plannerSmooth() {		
-        long err = _target - pos;
-        long stepsToStop = (float)_accelSpeed * _accelSpeed * _accelInv;
-        
+    bool plannerSmooth() {
+        int32_t err = _target - pos;
+        int32_t stepsToStop = (float)_accelSpeed * _accelSpeed * _accelInv;
+
         if (err == 0 && stepsToStop <= 1) return false;
 
         if (err > 0) {
             if (_n > 0) {
                 if ((stepsToStop >= err) || dir == -1)
-                _n = -stepsToStop;
+                    _n = -stepsToStop;
             } else if (_n < 0) {
                 if ((stepsToStop < err) && dir == 1)
-                _n = -_n;
+                    _n = -_n;
             }
         } else if (err < 0) {
             if (_n > 0) {
                 if ((stepsToStop >= -err) || dir == 1)
-                _n = -stepsToStop;
+                    _n = -stepsToStop;
             } else if (_n < 0) {
                 if ((stepsToStop < -err) && dir == -1)
-                _n = -_n;
+                    _n = -_n;
             }
         }
 
@@ -509,16 +511,16 @@ private:
             dir = _sign(err);
         } else {
             _cn = _cn - ((2.0 * _cn) / ((4.0 * _n) + 1));
-            _cn = max(_cn, _cmin); 
+            _cn = max(_cn, _cmin);
         }
         _n++;
         stepTime = _cn;
         _accelSpeed = 1000000.0 / _cn;
-        if (dir == -1) _accelSpeed = -_accelSpeed;	
+        if (dir == -1) _accelSpeed = -_accelSpeed;
         return true;
     }
-    
-    long _n = 0;
+
+    int32_t _n = 0;
     float _c0 = 0.0;
     float _cn = 0.0;
     float _cmin = 1.0;
@@ -528,16 +530,16 @@ private:
     void planner() {
         if (tickUs - _plannerTime >= _plannerPrd) {
             _plannerTime += _plannerPrd;
-            // ~110 us				
-            long err = _target - pos;											    // "ошибка"
-            bool thisDir = ( _accelSpeed * _accelSpeed * _accelInv >= abs(err) );	// пора тормозить
-            _accelSpeed += ( _accelTime * _plannerPrd * (thisDir ? -_sign(_accelSpeed) : _sign(err)) );	// разгон/торможение
-            if (_stopSpeed == 0) _accelSpeed = constrain(_accelSpeed, -_maxSpeed, _maxSpeed);   // ограничение
+            // ~110 us
+            int32_t err = _target - pos;                                                                  // "ошибка"
+            bool thisDir = (_accelSpeed * _accelSpeed * _accelInv >= abs(err));                        // пора тормозить
+            _accelSpeed += (_accelTime * _plannerPrd * (thisDir ? -_sign(_accelSpeed) : _sign(err)));  // разгон/торможение
+            if (_stopSpeed == 0) _accelSpeed = constrain(_accelSpeed, -_maxSpeed, _maxSpeed);          // ограничение
             else _accelSpeed = constrain(_accelSpeed, -_stopSpeed, _stopSpeed);
 
-            if (abs(_accelSpeed) > _MIN_SPEED_FP) stepTime = abs(1000000.0 / _accelSpeed);		// ограничение на мин. скорость
+            if (abs(_accelSpeed) > _MIN_SPEED_FP) stepTime = abs(1000000.0 / _accelSpeed);  // ограничение на мин. скорость
             else stepTime = _MAX_PERIOD_FP;
-            dir = _sign(_accelSpeed);												// направление для шагов
+            dir = _sign(_accelSpeed);  // направление для шагов
         }
     }
 
@@ -549,18 +551,18 @@ private:
     uint16_t _speedPlannerPrd = 15000;
     uint32_t _speedPlannerTime = 0;
     uint32_t _plannerTime = 0;
-    
+
     // планировщик разгона для KEEP_SPEED
     void smoothSpeedPlanner() {
         if (tickUs - _speedPlannerTime >= _speedPlannerPrd) {
             _speedPlannerTime = tickUs;
-            _accelSpeed += (_accelTime * _speedPlannerPrd * _sign(_speed - _accelSpeed));			
+            _accelSpeed += (_accelTime * _speedPlannerPrd * _sign(_speed - _accelSpeed));
             dir = _sign(_accelSpeed);
             stepTime = abs(1000000.0 / _accelSpeed);
             if (_stopF && abs(_accelSpeed) <= _MIN_STEP_SPEED) brake();
         }
     }
-    
+
     // ========================= VARIABLES =========================
     bool _stopF = 0;
     float _stepsPerDeg;
@@ -573,7 +575,7 @@ private:
     float _stopSpeed = 0;
     float _maxSpeed = 300;
     float _speed = 0;
-    int _accel = 0;	
+    uint16_t _accel = 0;
     float _accelInv = 0;
     GS_runMode _curMode = FOLLOW_POS;
 };
