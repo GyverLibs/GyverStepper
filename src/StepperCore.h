@@ -306,6 +306,7 @@ class Stepper {
             if (_pdir != dir) {
                 _pdir = dir;
                 setPin(1, (dir > 0) ^ _globDir);  // DIR
+                if (DRIVER_STEP_TIME > 0) delayMicroseconds(DRIVER_STEP_TIME);
             }
             setPin(0, 1);  // step HIGH
             if (DRIVER_STEP_TIME > 0) delayMicroseconds(DRIVER_STEP_TIME);
