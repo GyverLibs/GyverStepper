@@ -316,7 +316,7 @@ class Stepper {
         }
     }
 
-    int8_t _enPin = 255;
+    uint8_t _enPin = 255;
     bool _enDir = false;
     bool _globDir = false;
     int8_t _pdir = 0;
