@@ -1,714 +1,719 @@
-This is an automatic translation, may be incorrect in some places. See sources and examples!
+This is an automatic translation and may be incorrect in some places. See the source README and examples for authoritative information.
 
-# Gyverstepper
-Productive library for managing step engines with Arduino
-- Support for 4 pine (step and hemisphere) and step-dir drivers
-- automatic power outage when reaching the goal
-- operating modes:
-    - rotation with a given speed.Smooth acceleration and braking with acceleration
-    - Following the position with the acceleration and limitation of speed
-    - Following a position with a given speed (without acceleration)
-- Fast algorithm for managing steps
-- support of "virtual" drivers
-- Built -in multi -axis trajectory planner
+[![latest](https://img.shields.io/github/v/release/GyverLibs/GyverStepper.svg?color=brightgreen)](https://github.com/GyverLibs/GyverStepper/releases/latest/download/GyverStepper.zip)
+[![PIO](https://badges.registry.platformio.org/packages/gyverlibs/library/GyverStepper.svg)](https://registry.platformio.org/libraries/gyverlibs/GyverStepper)
+[![Foo](https://img.shields.io/badge/Website-AlexGyver.ru-blue.svg?style=flat-square)](https://alexgyver.ru/)
+[![Foo](https://img.shields.io/badge/%E2%82%BD%24%E2%82%AC%20%D0%9F%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%B0%D1%82%D1%8C-%D0%B0%D0%B2%D1%82%D0%BE%D1%80%D0%B0-orange.svg?style=flat-square)](https://alexgyver.ru/support_alex/)
+[![Foo](https://img.shields.io/badge/README-ENGLISH-blueviolet.svg?style=flat-square)](https://github-com.translate.goog/GyverLibs/GyverStepper?_x_tr_sl=ru&_x_tr_tl=en)  
 
-## compatibility
-Compatible with all arduino platforms (used arduino functions)
+[![Foo](https://img.shields.io/badge/ПОДПИСАТЬСЯ-НА%20ОБНОВЛЕНИЯ-brightgreen.svg?style=social&logo=telegram&color=blue)](https://t.me/GyverLibs)
 
-### Documentation
-There is [extended documentation] to the library (https://alexgyver.ru/gyverstepper/)
+# GyverStepper
+Production library for controlling stepper motors with Arduino
+- Support for 4-pin (step and half) and STEP-DIR drivers
+- Automatic power outage when achieving the goal
+- Working hours:
+    - Rotating at a given speed. Smooth acceleration and acceleration braking
+    - Follow the acceleration and speed limit position
+    - Follow the position at a given speed (without acceleration)
+- Fast step control algorithm
+- Support for “virtual” drivers
+- Built-in multi-axis trajectory planner
 
-## Content
-- [installation] (# Install)
-- [STEPPERCORE] (# Core)
-- [gyverstepper] (#stepper)
-- [gyverstepper2] (# STEPPER2)
-- [gyverplanner] (# Planner)
-- [gyverplanner2] (# Planner2)
-- [versions] (#varsions)
-- [bugs and feedback] (#fedback)
+### Compatibility
+Compatible with all Arduino platforms (Arduino features are used)
 
+### Documentation.
+There's a library[extended documentation](https://alexgyver.ru/GyverStepper/)
 
-## Ahhh why so many things?!
-The library contains a set of tools for different scenarios for working with walking engines
--*STEPPERCORE.H*[Class ** STEPPER **]: the core of all other classes, knows how to quickly click with pins (AVR) and take one step for a configured type of driver.Supports 4 phases of the step/hemisphere, as well as STEP-dir drivers.
--*gyverstepper.h*[class ** gstepper **]: the main heavy library, a lot of settings.The movement of one motor with acceleration to a given position or rotation with a given speed.Not very optimal work in interrupting the timer.
--*gyverstepper2.h*[class ** gstepper2 **]: a new lightweight version of GyversStepper is almost completely compatible with it.A more optimal integer hybrid motion algorithm with acceleration, lightweight.Optimized to work in the interruption of the timer.
--*gyverplanner.h*[class ** gplanner **]: a multi -axis trajectory planner, acceleration (2 order).Stop at each point.The optimal work in interrupting the timer.
--*gyverplanner2.h*[class ** gplanner2 **]: a multi -axis trajectory planner, acceleration (2 order).Speed planning on the route, optimal traffic to points.The optimal work in interrupting the timer.
+## Contents
+- [Installation](#install)
+- [StepperCore](#core)
+- [GyverStepper](#stepper)
+- [GyverStepper2](#stepper2)
+- [GyverPlanner](#planner)
+- [GyverPlanner2](#planner2)
+- [Versions](#versions)
+- [Bugs and feedback](#feedback)
 
-<a id="install"> </a>
+## Why are there so many things?!
+The library contains a set of tools for different scenarios of working with stepper motors
+- *StepperCore.h* [class **Stepper**]: the kernel of all other classes, can quickly click pins (AVR) and take one step for a configured driver type. Supports 4 step/half phases as well as step-dir drivers.
+- *GyverStepper.h* [class **GStepper**]: basic heavy library, lots of settings. The movement of one motor with acceleration to a given position or rotation at a given speed. Not very optimal work in interrupting the timer.
+- *GyverStepper2.h* [class **GStepper2**]: a new lightweight version of GyverStepper, almost completely compatible with it. A more optimal integer hybrid acceleration motion algorithm, lightweight. Optimized to work in timer interruption.
+- *GyverPlanner.h* [class **GPlanner**]: multi-axis trajectory planner, acceleration motion (2 orders of magnitude). Stop at every point. Optimal work in interrupting the timer.
+- *GyverPlanner2.h* [class **GPlanner2**]: multi-axis trajectory planner, acceleration motion (2 order). Planning speed on the route, optimal movement on points. Optimal work in interrupting the timer.
+
+<a id="install"></a>
 ## Installation
-- The library can be found by the name ** gyverstepper ** and installed through the library manager in:
-    - Arduino ide
-    - Arduino ide v2
-    - Platformio
-- [download the library] (https://github.com/gyverlibs/gyversteper/archive/refs/heads/main.zip) .Zip archive for manual installation:
-    - unpack and put in * C: \ Program Files (X86) \ Arduino \ Libraries * (Windows X64)
-    - unpack and put in * C: \ Program Files \ Arduino \ Libraries * (Windows X32)
-    - unpack and put in *documents/arduino/libraries/ *
-    - (Arduino id) Automatic installation from. Zip: * sketch/connect the library/add .Zip library ... * and specify downloaded archive
-- Read more detailed instructions for installing libraries [here] (https://alexgyver.ru/arduino-first/#%D0%A3%D1%81%D1%82%D0%B0%BD%D0%BE%BE%BE%BED0%B2%D0%BA%D0%B0_%D0%B1%D0%B8%D0%B1%D0%BB%D0%B8%D0%BE%D1%82%D0%B5%D0%BA)
+- The library can be found under the name **GyverStepper** and installed through the library manager in:
+    - Arduino IDE
+    - Arduino IDE v2
+    - PlatformIO
+- [Download the library](https://github.com/GyverLibs/GyverStepper/archive/refs/heads/main.zip).zip archive for manual installation:
+    - Unpack and put in *C:\Program Files (x86)\Arduino\libraries* (Windows x64)
+    - Unpack and put in *C:\Program Files\Arduino\libraries* (Windows x32)
+    - Unpack and put in *Documents/Arduino/libraries/ *
+    - (Arduino IDE) Automatic installation from .zip: *Sketch/Connect library/Add .ZIP library...* and specify downloaded archive
+- Read more detailed instructions for installing libraries[here](https://alexgyver.ru/arduino-first/#%D0%A3%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%BA%D0%B0_%D0%B1%D0%B8%D0%B1%D0%BB%D0%B8%D0%BE%D1%82%D0%B5%D0%BA)
 ### Update
-- I recommend always updating the library: errors are corrected in new versions andCranberries, as well as optimization and new features are added
-- through the IDE library manager: find the library how to install and click "update"
-- Manually: ** remove the folder with the old version **, and then put a new one in its place.“Replacement” cannot be done: sometimes in new versions, files that remain when replacing are deleted and can lead to errors!
+- I recommend always updating the library: new versions fix errors and bugs, as well as optimize and add new features.
+- Through the library manager IDE: find the library as when installing and click "Update"
+- Manually: **Delete the folder with the old version** and then put the new one in its place. “Replacement” can not be done: sometimes new versions delete files that will remain when replaced and can lead to errors!
 
-
-<a id="core"> </a>
-## STEPPERCORE
+<a id="core"></a>
+## StepperCore
 ### Description
-The nucleus of the library for managing step engines:
-- 4 phase and STEP DIR Drivers
-- PIN support EN
+The core of the library for controlling stepping motors:
+- 4 phase and STEP DIR drivers
+- Support for EN pin
 - Virtual driver
-- Quick IO algorithm for avr
+- Fast IO Algorithm for AVR
 
-<details>
-<summary> Expand </summary>
+<details >>
+<summary>Return</summary >>
 
-### initialization
-`` `CPP
-STEPPER <TPPER2Wire> STEPPER (STEP, DIR);// Driver STEP-DIR
-STEPPER <TPPER2Wire> STEPPER (STEP, DIR, EN);// Driver STEP-DIR + PIN Enable
-STEPPER <stPper4Wire> stpeper (PIN1, PIN2, PIN3, PIN4);// driver 4 PIN
-STEPPER <TPPER4Wire> stPper (PIN1, PIN2, PIN3, PIN4, EN);// Driver 4 PIN + Enable
-STEPPER <STEPPER4Wire_HALF> STEPPER (PIN1, PIN2, PIN3, PIN4);// Driver 4 Pin Hole
-STEPPER <STEPPER4Wire_HALF> STEPPER (PIN1, PIN2, PIN3, PIN4, EN);// Driver 4 Pin Hole + Enable
+### Initialization (StepperCore)
+```cpp
+Stepper<STEPPER2WIRE> stepper(step, dir);						// step-dir
+Stepper<STEPPER2WIRE> stepper(step, dir, en);					// Driver step-dir + pin enable
+Stepper<STEPPER4WIRE> stepper(pin1, pin2, pin3, pin4);			// driver
+Stepper<STEPPER4WIRE> stepper(pin1, pin2, pin3, pin4, en);		// driver 4 pin + enable
+Stepper<STEPPER4WIRE_HALF> stepper(pin1, pin2, pin3, pin4);		// driver 4 pin halfway
+Stepper<STEPPER4WIRE_HALF> stepper(pin1, pin2, pin3, pin4, en);	// driver 4 pin halfway + enable
 
-STEPPER <STEPPER2Wire, STEPPER_VIRTUAL> STEPPER;// STEP-DIR virtual driver
-STEPPER <STEPPER4Wire, STEPPER_VIRTUAL> STEPPER;// virtual driver 4 pin
-`` `
+Stepper<STEPPER2WIRE, STEPPER_VIRTUAL> stepper;					// virtual step-dir driver
+Stepper<STEPPER4WIRE, STEPPER_VIRTUAL> stepper;					// 4-pin virtual driver
+```
 
-### Use (STEPPERCORE)
-`` `CPP
-VOID STEP ();// make a step
-VOID Inverten (Bool Val);// Invert behavior en pina
-VOID Reverse (Bool Val);// Invert the direction of the motor
-Void Disable ();// Disconnect power and EN
-VOID Enable ();// Turn on power and en
-VOID Power (Bool);// Switch power
-VOID Attachstep (VOID (*handler) (uint8_t));// Connect the step processor
-VOID Attachpower (VOID (*handler) (bool));// Connect the food handler
+### Use (StepperCore)
+```cpp
+void step();                                // step up
+void invertEn(bool val);                    // invert
+void reverse(bool val);                     // reverse
+void disable();                             // switch off power and EN
+void enable();                              // power up and EN
+void power(bool);                           // switch off
+void attachStep(void (*handler)(uint8_t));  // plug in
+void attachPower(void (*handler)(bool));    // plug in
 
-int32_t pos;// current position in steps
-int8_t dir;// Direction (1, -1)
-`` `
+int32_t pos;                                // stepwise
+int8_t dir;                                 // direction (1, -1)
+```
 
 ### Example
-The rest of the examples look at ** Examples **!
-`` `CPP
-#include <steppercore.h>
-STEPPER <TPPER2Wire> STEPPER (2, 3);
+For more examples see **examples**!
+```cpp
+#include <StepperCore.h>
+Stepper<STEPPER2WIRE> stepper(2, 3);
 
-VOID setup () {
-  stepper.dir = 1;// or -1
-  stepper.pos = 0;// access to position
+void setup() {
+  stepper.dir = 1;  // or -1
+  stepper.pos = 0;  // positioning
 }
 
-VOID loop () {
-  // Twist manually
-  STEPPER.STEP ();// make a step
-  Delay (10);
+void loop() {
+  // manually
+  stepper.step();   // step up
+  delay(10);
 }
-`` `
+```
 </details>
 
-<a id="stepper"> </a>
-## gyverstepper and gyverstepper2
-- Gstepper2 is much easier and more optimized
-- Gstepper2 is more designed to move along the trajectory points, but the "following" mode in it also works
-- Gstepper2 is optimized to work in a timer interruption
-- Gstepper2 uses a smooth motor motion algorithm by default
-- Gstepper2 is likely to load the microcontroller a little more during operation than Gstepper.But much less than Gstepper in Smooth_algorithm mode
+<a id="stepper"></a>
+## GyverStepper and GyverStepper2
+- GStepper2 is much lighter and more optimized
+- GStepper2 is designed to move along the points of the trajectory, but the “tracking” mode also works.
+- GStepper2 optimized for timer interrupt
+- GStepper2 uses a smooth motor motion algorithm by default
+- GStepper2 is likely to be slightly more loaded on the microcontroller during operation than GStepper. But much less than GStepper in SMOOTH ALGORITHM mode.
 
-### How Gstepper works
-- Fast algorithm (by default): Two timers were instituted in the library: a step timer (different period) and a planner timer (10-30 milliseconds).According to the planner, the trajectory is recalculated and the direction of movement and the current necessary speed is calculated.From this speed, a new period is obtained for the steps of steps.
-- smooth algorithm (Smooth_algorithm settings): one step timer works, at every step the speed of movement and time is recalculated until the next step.
+### How does GStepper work?
+- Fast algorithm (default): The library has two timers: a step timer (different period) and a scheduler timer (10-30 milliseconds). The scheduler timer recalculates the trajectory and calculates the direction of movement and the current required speed. This speed results in a new period for the step timer.
+- Smooth algorithm (SMOOTH ALGORITHM setting): one step timer works, at each step the speed and time are recalculated to the next step.
 
-### How GSTEPPER2 works
-- A smooth profile (by default): The Smooth_algorithm smooth motion algorithm is used here in Gstepper, but optimized and accelerated by 2-3 times.All heavy calculations of the trajectories are made when setting a new target position in Settarget.Further along the steps of steps, the motor steps and quickly calculates the new time of the next step.This allows you to spend a minimum of time interrupting the timer if it is used.
-- Fast profile (Setting GS_FAST_PROFILE): Everything is the same, but in the steps of steps there is no calculation, but the choice of the period from the pre -calculated table, which allowsis to be accelerated up to speeds of 30,000 steps per second.
+### How does GStepper2 work?
+- Smooth profile (default): It uses the smooth motion algorithm SMOOTH ALGORITHM as in GStepper, but optimized and accelerated by 2-3 times. All heavy trajectory calculations are performed when a new target position is specified in setTarget. Further on the step timer, the motor moves and quickly calculates the new time of the next step. This allows you to spend a minimum of time interrupting the timer if it is used.
+- Quick profile (GS FAST PROFILE setting): the same thing, but the step timer does not calculate, but selects the period from a pre-calculated table, which allows you to move with acceleration up to speeds of 30,000 steps per second.
 
-## gyverstepper
+## GyverStepper
 ### Description
-Library for managing step engines with Arduino
-- Support for 4 pine (step and hemisphere) and step-dir drivers
-- automatic power outage when reaching the goal
-- operating modes:
-    - rotation with a given speed.Smooth acceleration and braking with acceleration
-    - Following the position with the acceleration and limitation of speed
-    - Following a position with a given speed (without acceleration)
+Library for controlling stepping motors with Arduino
+- Support for 4-pin (step and half) and STEP-DIR drivers
+- Automatic power outage when achieving the goal
+- Working hours:
+    - Rotating at a given speed. Smooth acceleration and acceleration braking
+    - Follow the acceleration and speed limit position
+    - Follow the position at a given speed (without acceleration)
 
-<details>
-<summary> Expand </summary>
+<details >>
+<summary>Return</summary >>
 
-## H initialization
-`` `CPP
-// stps - steps for one turn of the shaft (for calculations with degrees)
-// STEP, DIR, PIN1, PIN2, PIN3, PIN4 - Any GPIO
-// en - Pin disconnecting the driver, any GPIO
-Gstepper <stepper2wire> stepper (Steps, STEP, DIR);// Driver STEP-DIR
-Gstepper <stepper2wire> stepper (Steps, STEP, DIR, EN);// Driver STEP-DIR + PIN Enable
-GSTEPPER <TPPER4Wire> STEPPER (STEPS, PIN1, PIN2, PIN3, PIN4);// driver 4 PIN
-GSTEPPER <TPPER4Wire> STEPPER (STEPS, PIN1, PIN2, PIN3, PIN4, EN);// Driver 4 PIN + Enable
-Gstepper <stPper4wire_HALF> stPper (STEPS, PIN1, PIN2, PIN3, PIN4);// Driver 4 Pin Hole
-Gstepper <stepper4wire_half> stepper (stps, Pin1, PIN2, PIN3, PIN4, EN);// Driver 4 Pin Hole + Enable
-GSTEPPER <stPper4Wire, STEPPER_VIRTUAL> STEPPER (2048);// virtual driver, indicate only the number of steps
-`` `
+### Initialization
+```cpp
+// steps - steps per turn of the shaft (for calculations with degrees)
+// step, dir, pin1, pin2, pin3, pin4 - any GPIO
+// en - PIN disabling the driver, any GPIO
+GStepper<STEPPER2WIRE> stepper(steps, step, dir);                   // step-dir
+GStepper<STEPPER2WIRE> stepper(steps, step, dir, en);               // Driver step-dir + pin enable
+GStepper<STEPPER4WIRE> stepper(steps, pin1, pin2, pin3, pin4);      // driver
+GStepper<STEPPER4WIRE> stepper(steps, pin1, pin2, pin3, pin4, en);  // driver 4 pin + enable
+GStepper<STEPPER4WIRE_HALF> stepper(steps, pin1, pin2, pin3, pin4);     // driver 4 pin halfway
+GStepper<STEPPER4WIRE_HALF> stepper(steps, pin1, pin2, pin3, pin4, en); // driver 4 pin halfway + enable
+GStepper<STEPPER4WIRE, STEPPER_VIRTUAL> stepper(2048);                  // Virtual driver, specify only the number of steps
+```
 
-### Usage
-`` `CPP
-// Note: Further in the text by default, I mean "even if not to cause a function"
+### Use of use
+```cpp
+// Note: "default" means "even if no function is called"
 
-// The movement of the motor occurs here, call as often as possible!
-// has a built -in timer
-// Returns True if the motor moves to the target or spins along Keep_Speed
-Bool Tick ();
+// There is a movement of the motor, call as often as possible!
+// It has a built-in timer.
+// Returns true if the motor is moving towards the target or spinning KEEP SPEED
+bool tick();
 
-// Returns the same as Tick, i.e.The motor is spinning or not
-Bool getstate ();
+// Returns the same thing as the tick, i.e. whether the motor turns or not.
+bool getState();
 
-// Invert the direction of the motor - True (by default. False)
-VOID Reverse (Bool Dir);
+// Invert the direction of the motor - true (in silent. false)
+void reverse(bool dir);
 
-// Invert the behavior en Pina - True (by silence. False)
-VOID Inverten (Bool Rev);
+// Invert the behavior of EN PIN - true (by omission. false)
+void invertEn(bool rev);
 
-// Installation of the operating mode, mode:
-// follow_pos - following the position of Settarget (...)
-// keep_Speed - holding speed of setspeed (...)
-VOID Setrunmode (GS_RUNMODE MODE);
+// Mode setting, mode:
+// FOLLOW POS - following the position setTarget(...)
+// KEEP SPEED - SetSpeed (...)
+void setRunMode(GS_runMode mode);
 
-// Installation of the current position of the motor in steps and degrees
-VOID setcurrent (LONG POS);
-VOID setcurrentdeg (Float POS);
+// Setting the current position of the motor in steps and degrees
+void setCurrent(long pos);
+void setCurrentDeg(float pos);
 
-// Reading the current position of the motor in steps and degrees
-Long getcurrent ();
-Float getcurrentdeg ();
+// Reading the current motor position in steps and degrees
+long getCurrent();
+float getCurrentDeg();
 
-// Installation of the target position in steps and degrees (for the FOLLOW_POS mode)
-// type - absolute or relative, by default costs absolute
-VOID settarget (LONG POS);
-VOID settarget (LONG POS, GS_Postype Type);
-Void settargetdeg (Float POS);
-VOID settargetdeg (Float Pos, GS_Postype Type);
+// setting the target position in steps and degrees (for FOLLOW POS)
+// Type - ABSOLUTE or RELATIVE, the default is ABSOLUTE
+void setTarget(long pos);
+void setTarget(long pos, GS_posType type);
+void setTargetDeg(float pos);
+void setTargetDeg(float pos, GS_posType type);
 
-// Obtaining the target position in steps and degrees
-Long gettarget ();
-Float gettargetdeg ();
+// Getting the target position in steps and degrees
+long getTarget();
+float getTargetDeg();
 
-// Installation of maximum speed (according to the module) in steps/second and degrees/second (for Follow_POS mode)
-// by the silence.300
-VOID setmaxSpeed (Float Speed);
-VOID setmaxSpeeddeg (Float Speed);
+// Set the maximum speed (module) in steps/second and degrees/second (for FOLLOW POS mode)
+// Shut up. 300.
+void setMaxSpeed(float speed);
+void setMaxSpeedDeg(float speed);
 
-// Installation of acceleration in steps and degrees per second (for the Follow_POS mode).
-// at a value of 0 acceleration is turned off and the motor works
-// according to the profile of constant maximum speed setmaxSpeed ().
-// by the silence.300
-VOID setaccoleration (Intscel);
-VOID setaccolerationdeg (Float Accel);
+// Set acceleration in steps and degrees per second (for FOLLOW POS mode).
+// At 0, the acceleration is switched off and the motor is running.
+// Continuous maximum speed profile setMaxSpeed().
+// Shut up. 300.
+void setAcceleration(int accel);
+void setAccelerationDeg(float accel);
 
-// Auto Detection EN when reaching the position - True (by the silence. False)
-Void Autopower (Bool Mode);
+// Auto-disconnect EN when reaching position - true (by default. false)
+void autoPower(bool mode);
 
-// smooth stop with a given acceleration
-VOID Stop ();
+// Smooth stop with specified acceleration
+void stop();
 
-// Hard stop
-VOID Brake ();
+// Hard stop.
+void brake();
 
-// hard stop + reset of position in 0 (for endings)
-VOID Reset ();
+// Hard stop + reset position to 0 (for tips)
+void reset();
 
-// Installation of targeted speed in steps/second and degrees/second (for Keep_Speed mode)
-VOID SetSpeed (Float Speed);
-VOID SetSpeeddeg (Float Speed);
+// Setting the target speed in steps / second and degrees / second (for KEEP SPEED mode)
+void setSpeed(float speed);
+void setSpeedDeg(float speed);
 
-// Obtaining targeted speed in steps/second and degrees/second (for Keep_Speed mode)
-Float GetSpeed ();
-Float getspeeddeg ();
+// Getting the target speed in steps / second and degrees / second (for KEEP SPEED mode)
+float getSpeed();
+float getSpeedDeg();
 
-// Turn on the motor (PIN EN)
-VOID Enable ();
+// Power up the engine (pin EN)
+void enable();
 
-// Turn off the motor (PIN EN)
-Void Disable ();
+// Turn off the engine (pin EN)
+void disable();
 
-// Returns the minimum period of the tick of the motor in microseconds at the settled setmaxSpeed () speed.
-// can be used to configure the timer interruptions, in the processor of whichwow will be tick () (see Timerisr example)
-uint16_t getminperiod ();
+// Returns the minimum tick period of the motor in microseconds at setMaxSpeed() speed.
+// Can be used to configure timer interrupts with a tick() in the handler (see example timerISR)
+uint16_t getMinPeriod();
 
-// The current period "TIKA" for debugging and all of this
-uint16_t steptime;
+// The current "tick" period for debugging and all that.
+uint16_t stepTime;
 
-// connect an external processor for step and switch power
-Void Attachstep (Handler)
-Void Attachpower (Handler)
-`` `
+// connect an external handler to step and switch power
+void attachStep(handler)
+void attachPower(handler)
+```
 
 ### Example
-The rest of the examples look at ** Examples **!
-`` `CPP
-#include <gyverstepper.h>
-GSTEPPER <TPPER4Wire> STEPPER (2048, 5, 3, 4, 2);
+For more examples see **examples**!
+```cpp
+#include <GyverStepper.h>
+GStepper<STEPPER4WIRE> stepper(2048, 5, 3, 4, 2);
 
-VOID setup () {
-  Serial.Begin (115200);
-  // Speed maintenance mode
-  STEPPER.SETRUNMODE (keep_Speed);
+void setup() {
+  Serial.begin(115200);
+  // speeding
+  stepper.setRunMode(KEEP_SPEED);
 
-  // you can set the speed
-  STEPPER.SETSPEED (120);// in steps/second
-  STEPPER.SETSPEEDDEG (80);// in degrees/s
+  // speeding
+  stepper.setSpeed(120);    // stepwise
+  stepper.setSpeedDeg(80);  // degrees/sec
 
-  // Message to the target position
-  STEPPER.SETRUNMODE (follow_pos);
+  // follow-up
+  stepper.setRunMode(FOLLOW_POS);
 
-  // you can establish a position
-  STEPPER.SETTARGET (-2024);// in steps
-  STEPPER.SETTARGETDEG (-360);// In degrees
+  // position
+  stepper.setTarget(-2024);    // stepwise
+  stepper.setTargetDeg(-360);  // degree
 
-  // Installation Max.speeds in degrees/s
-  STEPPER.SetmaxSpeeddeg (400);
+  // Maximum velocity setting in degrees/sec
+  stepper.setMaxSpeedDeg(400);
 
-  // Installation Max.Speed in steps/second
-  STEPPER.SetmaxSpeed (400);
+  // Maximum speed setting in steps/sec
+  stepper.setMaxSpeed(400);
 
-  // Installation of acceleration in degrees/second
-  STEPPER.SETACCELERATIONDEG (300);
+  // acceleration
+  stepper.setAccelerationDeg(300);
 
-  // Installation of acceleration in steps/sec/s
-  STEPPER.SETACCELERATION (300);
+  // acceleration
+  stepper.setAcceleration(300);
 
-  // Disconnect the motor when reaching the goal
-  STEPPER.Autopower (True);
+  // turn off the motor when the goal is reached
+  stepper.autoPower(true);
 
-  // Turn on the motor (if the pin is specified)
-  STEPPER.ENABLE ();
+  // turn on the motor (if pin en is indicated)
+  stepper.enable();
 }
 
-VOID loop () {
-  // just twist tudes-fuckers
-  if (! stepper.tick ()) {
-    Static Bool Dir;
-    Dir =! Dir;
-    STEPPER.SETTARGET (DIR? -1024: 1024);
+void loop() {
+  // We're just going round and round.
+  if (!stepper.tick()) {
+    static bool dir;
+    dir = !dir;
+    stepper.setTarget(dir ? -1024 : 1024);
   }
 }
-`` `
+```
 </details>
 
-<a Id="stepper2"> </a>
-## gyverstepper2
+<a id="stepper2"></a>
+## GyverStepper2
 ### Description
-Lightened GyverstePper
-- easier for a few KB, all the integer
-- increased accuracy of positioning
-- more effective hybrid motion algorithm
-- Movement to the goal with acceleration
-- rotation at speed
-- Max.speed:
-  - Conventional mode: 37,000 step/s on full, 18,000 step/s on acceleration
-  - Fast profile: 37000 step/s on full, 37,000 step/s on acceleration
-- optimized for the interruption of the timer
-- Inherits STEPPERCORE
+Lightweight GyverStepper
+- Easy by a few kB, all integer.
+- Increased positioning accuracy
+- More efficient hybrid motion algorithm
+- Accelerating to target
+- Rotating at speed
+- Max speed:
+  - Normal mode: 37,000 steps / s at full, 18,000 steps / s at acceleration
+  - Fast profile: 37,000 steps / s at full, 37,000 steps / s at acceleration
+- Optimized for work on timer interruption
+- Inherit StepperCore
 
-### Logic of Work
-- settarget ()/settargetdeg () sends the motor to the specified position
-- The movement occurs in Tick (), which needs to be interviewed constantly.Either in Tickmanual, which must be called with a period received from Getperiod () and recount on each step
-- Tick () will return True if the motor is spinning
-- Ready () will return True once if the motor has reached the target and stopped
-- while moving towards the target, you can call PAUSE (), then the engine will reach the point and stop, Ready () will not return True
-- while moving towards the target, you can cause Stop (), then the motor will slow down with a given acceleration, Ready () will not return True
-- while moving towards the target, you can call Brake (), then the motor will stop, Ready () will not return True
-- after stopping, you can call resume (), the motor will continue to move to the target
-- Constant rotation is set by SetSpeed ()/setSpeeddeg ().You can stop abruptly - Stop () or Brake ()
-- Speed and acceleration can be set at any time, but they are used after stopping the motor!
+### Logic of work
+- setTarget()/setTargetDeg() sends the motor to the specified position.
+- The movement occurs in a tick(), which must be interviewed constantly. Or in tickManual, which must be called with a period derived from getPeriod() and counted at each step.
+- Tick() will return true if the engine is rotating
+- ready() will return true once if the motor reached the target and stopped
+- While moving to the target, you can cause pause(), then the motor will reach the point and stop, ready() will not return true.
+- During the movement to the target, you can call stop(), then the motor will brake with a given acceleration, ready() will not return the true
+- During the movement to the target, you can call the brake(), then the motor will stop, ready() will not return true.
+- After stopping, you can call resume(), the motor will continue to move to the target.
+- The constant rotation is setSpeed()/setSpeedDeg(). You can stop abruptly – stop() or brake()
+- Speed and acceleration can be set at any time, but they are applied after the engine stops!
 
-<details>
-<summary> Expand </summary>
+<details >>
+<summary>Return</summary >>
 
-## H initialization
-`` `CPP
-GSTEPPER2 <TPPER2Wire> STEPPER (WHECHOOL REGULATION, STEP, DIR);// Driver STEP-DIR
-GSTEPPER2 <TPPER2Wire> STEPPER (WHECHOOL REGULATION, STEP, DIR, EN);// Driver STEP-DIR + PIN Enable
-GSTEPPER2 <TPPER4Wire> STEPPER (WHECHOOL, PIN1, PIN2, PIN3, PIN4);// driver 4 PIN
-GSTEPPER2 <TPPER4Wire> STEPPER (WHECHOOL, PIN1, PIN2, PIN3, PIN4, EN);// Driver 4 PIN + Enable
-Gstepper2 <stPper4Wire_HALF> stPper (step -off, PIN1, PIN2, PIN3, PIN4);// Driver 4 Pin Hole
-GSTEPPER2 <stPper4Wire_HALF> STEPPER (Shagyna Two, PIN1, PIN2, PIN3, PIN4, EN);// Driver 4 Pin Hole + Enable
+### Initialization
+```cpp
+GStepper2<STEPPER2WIRE> stepper(шаговНаОборот, step, dir);                          // step-dir
+GStepper2<STEPPER2WIRE> stepper(шаговНаОборот, step, dir, en);                      // Driver step-dir + pin enable
+GStepper2<STEPPER4WIRE> stepper(шаговНаОборот, pin1, pin2, pin3, pin4);             // driver
+GStepper2<STEPPER4WIRE> stepper(шаговНаОборот, pin1, pin2, pin3, pin4, en);         // driver 4 pin + enable
+GStepper2<STEPPER4WIRE_HALF> stepper(шаговНаОборот, pin1, pin2, pin3, pin4);        // driver 4 pin halfway
+GStepper2<STEPPER4WIRE_HALF> stepper(шаговНаОборот, pin1, pin2, pin3, pin4, en);    // driver 4 pin halfway + enable
 
-GSTEPPER2 <stPper2Wire, STEPPER_VIRTUAL> STEPPER;// STEP-DIR virtual driver
-Gstepper2 <stPper4wire, stpeper_virtual> stPper;// virtual driver 4 pin
-`` `
+GStepper2<STEPPER2WIRE, STEPPER_VIRTUAL> stepper;    // virtual step-dir driver
+GStepper2<STEPPER4WIRE, STEPPER_VIRTUAL> stepper;    // 4-pin virtual driver
+```
 
-### Usage
-`` `CPP
-// === Inherited from stepper =====
-VOID STEP ();// make a step
-VOID Inverten (Bool Val);// Invert behavior en pina
-VOID ReVerse (Bool Val);// Invert the direction of the motor
-Void Disable ();// Disconnect power and EN
-VOID Enable ();// Turn on power and en
-VOID Attachstep (VOID (*handler) (uint8_t));// Connect the step processor
-VOID Attachpower (VOID (*handler) (bool));// Connect the food handler
+### Use of use
+```cpp
+// === Inherited from Stepper ===
+void step();                                // step up
+void invertEn(bool val);                    // invert
+void reverse(bool val);                     // reverse
+void disable();                             // switch off power and EN
+void enable();                              // power up and EN
+void attachStep(void (*handler)(uint8_t));  // plug in
+void attachPower(void (*handler)(bool));    // plug in
 
-int32_t pos;// current position in steps
-int8_t dir;// Direction (1, -1)
+int32_t pos;                                // stepwise
+int8_t dir;                                 // direction (1, -1)
 
-// ========= gstepper2 =============
+// ========= GStepper2 ==========
 // ticker
-Bool Tick ();// Move ticker, call often.Will return True if the motor moves
-Bool Tickmanual ();// Hand Ticker for calling in interrupting the timer with the Getperiod () period.Will return True if the motor moves
-Bool Ready ();// True will return once if the motor has reached the established position and stopped
+bool tick();                                // Motion ticker, call frequently. It will return true if the engine is moving.
+bool tickManual();                          // manual ticker to call in interrupt timer with period getPeriod(). It will return true if the engine is moving.
+bool ready();                               // Once return true, if the engine reached the established position and stopped
 
 // rotation
-VOID SetSpeed (Int16_T Speed);// set speed in steps/s and start rotation
-VOID SetSpeed (Float Speed);// set speed in steps/seconds and start rotation
+void setSpeed(int16_t speed);               // set the speed in steps/sec and start the rotation
+void setSpeed(float speed);                 // set the speed in steps/sec (float) and start the rotation
 
-// Movement to the goal
-VOID settarget (int32_t ntar, gs_postype type = Absolute);// Set the target in steps and optionally Absolute/Relative mode
-VOID settargetdeg (int32_t ntar, gs_postype type = absolute);// set a target in degrees and optionally Absolute/Relative mode
-int32_t gettarget ();// Get a target position in steps
+// target
+void setTarget(int32_t ntar, GS_posType type = ABSOLUTE);       // set the goal in steps and optionally ABSOLUTE/RELATIVE mode
+void setTargetDeg(int32_t ntar, GS_posType type = ABSOLUTE);    // set the target in degrees and optionally ABSOLUTE/RELATIVE mode
+int32_t getTarget();                                            // Get a Target Position in Steps
 
-VOID setaccoleration (uint16_t na);// Installation of acceleration in the step/sec^2
-VOID SetmaxSpeed (Intsed);// set the speed of movement when following the settarget () position in steps/s
-VOID setmaxSpeed (Float Speed);// set the speed of movement when following the settarget () position in steps/sec, float
-VOID setmaxSpeedDeg (int spEED);// set the speed of movement when following a position in the city/s
-VOID setmaxSpeeddeg (Float Speed);// Set the speed of movement when following a position in hail/s, float
+void setAcceleration(uint16_t nA);          // acceleration
+void setMaxSpeed(int speed);                // set the speed when following the position setTarget() in steps / sec
+void setMaxSpeed(float speed);              // set the speed when following the position setTarget() in steps / sec, float
+void setMaxSpeedDeg(int speed);             // set the speed when proceeding to the position in hail / sec
+void setMaxSpeedDeg(float speed);           // set the speed of movement when proceeding to the position in grad/sec, float
 
-VOID setcurrent (int32_t npos);// set the current position
-int32_t getcurrent ();// get the current position
-VOID Reset ();// drop the current position in 0
+void setCurrent(int32_t npos);              // position
+int32_t getCurrent();                       // get the current position
+void reset();                               // drop the current position to 0
 
-// Everyone
-Void Autopower (Bool Mode);// Auto Detachment of the motor when reaching the position - True (by silence. False)
-uint32_t getperiod ();// get the current period of ticks
-VOID Brake ();// stop the motor abruptly
-VOID PAUSE ();// pause - get to a given point and wait (Ready () will not return True until you are on a pause)
-VOID Resume ();// Continue movement after stopping/pause
-uint8_t getstatus ();// current status: 0 - stand, 1 - go, 2 - we go to the point of the pause, 3 - we spin at speed, 4 - inhibit
+// anything
+void autoPower(bool mode);                  // Auto shutdown of the motor when reaching the position - true (by default. false)
+uint32_t getPeriod();                       // get the current tic period
+void brake();                               // stop
+void pause();                               // Pause - get to a given point and wait (ready() will not return true while you are on pause)
+void resume();                              // Continue after a stop/pause
+uint8_t getStatus();                        // Current status: 0 - stand, 1 - go, 2 - go to the pause point, 3 - spin at speed, 4 - brake
 
-// ===== defines settings ========
-// definate before connecting the library
-#define GS_NO_ACCEL // Disable the movement module with acceleration (reduce code weight)
+// ===============
+// defile before connecting the library
+#define GS_NO_ACCEL                         // disable the acceleration module (reduce code weight)
 
-#define gs_fast_profile size_massive (for example 10)
-Includes a fast speed planner.Acceleration/braking area is broken
-For the indicated number of segments (+8 bytes of SRAM to the site), the speed will be the same on them.
-This allows you to quickly calculate the speed of the motor and reach 30,000 step/s on the acceleration site
-(in normal mode, half as much).
-`` `
+#define GS_FAST_PROFILE размер_массива (например 10)
+Включает быстрый планировщик скорости. Участок разгона/торможения разбивается 
+на указанное количество отрезков (+8 байт SRAM на участок), на них скорость будет одинаковая. 
+Это позволяет быстро вычислять скорость мотора и достигнуть 30000 шаг/с на участке разгона 
+(в обычном режиме в два раза меньше).
+```
 
 ### Example
-The rest of the examples look at ** Examples **!
-`` `CPP
-// Twist here, tick in look
+For more examples see **examples**!
+```cpp
+// Let's turn there, tick in the loop.
 
-#include "gyverstepper2.h"
-GSTEPPER2 <TPper2Wire> STEPPER (2048, 2, 3);
+#include "GyverStepper2.h"
+GStepper2<STEPPER2WIRE> stepper(2048, 2, 3);
 
-VOID setup () {
-  Serial.Begin (9600);
-  //stepper.enable ();
-  STEPPER.SetmaxSpeed (100);// speed to the target
-  STEPPER.SETACCELERATION (200);// Acceleration
-  STEPPER.SETTARGET (300);// target
+void setup() {
+  Serial.begin(9600);
+  //stepper.enable();
+  stepper.setMaxSpeed(100);     // speed
+  stepper.setAcceleration(200); // acceleration
+  stepper.setTarget(300);       // goal
 }
 
-Bool Dir = 1;
-VOID loop () {
-  STEPPER.Tick ();// Motor asynchronously spins here
+bool dir = 1;
+void loop() {
+  stepper.tick();   // The motor is spinning asynchronously here.
 
-  // if you arrive
-  if (stepper.read ()) {
-    Dir =! Dir;// unfold
-    STEPPER.SETTARGET (DIR * 300);// We go the other way
+  // if you came
+  if (stepper.ready()) {
+    dir = !dir;   // unfold
+    stepper.setTarget(dir * 300); // go the other way
   }
 
-  // asynchronous conclusion to the port
-  Static uint32_t tmr;
-  if (millis () - tmr> = 30) {
-    TMR = Millis ();
-    Serial.println (stpeper.pos);
+  // port-out
+  static uint32_t tmr;
+  if (millis() - tmr >= 30) {
+    tmr = millis();
+    Serial.println(stepper.pos);
   }
 }
-`` `
+```
 </details>
 
-
-<a id="planner"> </a>
-## gyverplanner
+<a id="planner"></a>
+## GyverPlanner
 ### Description
-A multi -axis planner of trajectories for walking engines and creating a CNC machine
-- Stop at each point.One next position
-- Max.speed:
-  - Conventional mode: 37,000 step/s on full, 14,000 step/s on acceleration
-  - Fast profile: 37000 step/s on full, 37,000 step/s on acceleration
-- trapezoidal speed profile (2nd order planner)
-- setting speed and acceleration
-- Any number of axes.Will move synchronously to the set goals
-- fast integer model of path planning and speed
-- regime of constant rotation for one axis (for movement towards the end for example)
-- Brake/smooth stop/pause on the planner trajectory
-- optimized for the interruption of the timer
-- Fast control of steps steps for Arduino avr
-- Speed and acceleration can be set at any time, but they are used after stopping the motor!
+Multi-axis trajectories planner for stepper motors and CNC machine creation
+- Stop at every point. Boofer for one next position
+- Max speed:
+  - Normal mode: 37,000 steps / s at full, 14,000 steps / s at acceleration
+  - Fast profile: 37,000 steps / s at full, 37,000 steps / s at acceleration
+- Trapeceidal speed profile (order 2 scheduler)
+- Adjusting speed and acceleration
+- Any number of axes. They will move synchronously to their goals.
+- Fast Integer Trajectory and Speed Planning Model
+- Constant rotation mode for one axis (for movement to the tip for example)
+- Brake/smooth stop/pause on scheduler trajectory
+- Optimized for work on timer interruption
+- Quick control of stepping pins for the Arduino AVR
+- Speed and acceleration can be set at any time, but they are applied after the engine stops!
 
-### Logic of Work
-The planner controls any number of engines, rotating them to the indicated position.In this version
-stops at each point of the trajectory, after which the flag of Ready () rises and expects
-installations of the next point.
+### Logic of work
+The scheduler manages any number of motors, rotating them to the specified position. In this version
+stop occurs at each point of the trajectory, after which the flag is raised ready() and waits
+setting the next point.
 - See the simulation in Processing: Planner Simulation/Planner folder
 
-<details>
-<summary> Expand </summary>
+<details >>
+<summary>Return</summary >>
 
-## H initialization
-`` `CPP
-GPlanner <driver, number of axes> Planner;
-`` `
+### Initialization
+```cpp
+GPlanner<драйвер, количество осей> planner;
+```
 
-### Usage
-`` `CPP
-VOID Addstepper (Uint8_T Axis, STEPPER & STP);// Connect the STEPPER class motor on the axis axis
-// Note: the type of driver should match the planner and motors
+### Use of use
+```cpp
+void addStepper(uint8_t axis, Stepper &stp);    // connect the Stepper motor to the axis
+// note: the driver type must match the scheduler and motors
 
-VOID Setbacklash (Uint8_t Axis, Uint16_T Steps);// Set the back of the ramp on the axis axis in the number of steps steps
-VOID Enable ();// Turn on the motors
-Void Disable ();// Turn off the motors
-VOID Power (Bool V);// Switch power
+void setBacklash(uint8_t axis, uint16_t steps); // set the luft compensation on the axis axis in the number of steps
+void enable();                              // motorize
+void disable();                             // turn off
+void power(bool v);                         // switch off
 
-// SETTINGS
-VOID setmaxSpeed (Float NV);// Installation of the maximum speed of the planner in the step/s
-VOID setaccoleration (uint16_t na);// Installation of acceleration of the planner in the step/sec^2
+// STRUCTIONS
+void setMaxSpeed(float nV);                 // setting the maximum scheduler speed in step/sec
+void setAcceleration(uint16_t nA);          // setting scheduler acceleration in step/sec2
 
-// planner
-uint32_t getperiod ();// returns time to the ISS until the next call Tick/Tickmanual
-Bool Ready ();// True - ready to accept the next point of the route
-VOID PAUSE ();// pause (get to a given point and wait).Ready () will not return True until you are on a pause
-VOID Stop ();// Stop smoothly (with a given acceleration)
-VOID Brake ();// sharply stop the motors from any regime
-VOID Resume ();// Continue after stopping/pauses
-VOID Reset ();// throw off the counters of all motors in 0
-VOID Home ();// Send to 0 for all axes
-uint8_t getstatus ();// current status: 0 - stand, 1 - go, 2 - we go to the point of the pause, 3 -t - we circle at speed
+// Planners
+uint32_t getPeriod();                       // Returns time to MX until the next tick/tickManual call
+bool ready();                               // True - Ready to take the next route point
+void pause();                               // Pause (to reach a given point and wait). Ready() will not return true until you pause
+void stop();                                // stop smoothly (with a predetermined acceleration)
+void brake();                               // Stop motors from any mode
+void resume();                              // continue after stopping/pausing
+void reset();                               // reset all motor counters to 0
+void home();                                // zero off n
+uint8_t getStatus();                        // Current status: 0 - stand, 1 - go, 2 - go to the pause point, 3 - spin at speed
 
-// SPEED
-VOID SetSpeed (Uint8_t Axis, Float Speed);// Permanent rotation mode for axis axis at the speed of Speed Step/S (MB Neutheity)
+// Speed
+void setSpeed(uint8_t axis, float speed);   // constant rotation mode for the axis axis at speed step/sec (IB negative)
 
 // Position
-VOID setcurrent (int16_t cur []);// establish the current position of the engines
-VOID setcurrent (int32_t cur []);// establish the current position of the engines
-Int32_T Getcurrent (int Axis);// Get the current position on the axis axis
+void setCurrent(int16_t cur[]);             // position
+void setCurrent(int32_t cur[]);             // position
+int32_t getCurrent(int axis);               // Get the current position on the axis axis
 
-// set the target in steps and start movement.Type - Absolute
-// Absolute - specific coordinates of the point where to move
-// Relative - displacement relative to the current motors provisions
-// will return True if the goal is set.FALSE if the goal coincides with the current
-Bool settarget (int32_t target []);
-Bool settarget (int16_t target []);
-Bool settarget (int32_t target [], type);
-Bool settarget (int16_t target [], type);
-Int32_T Gettarget (int Axis);// Get a target in steps on axis axis
+// Set your goal in steps and start moving. type - ABSOLUTE (by default) or RELATIVE
+// ABSOLUTE - specific coordinates of the point where to go
+// RELATIVE - displacement relative to current motor positions
+// Return true if the target is set. false if the objective is the same as the current one
+bool setTarget(int32_t target[]);
+bool setTarget(int16_t target[]);
+bool setTarget(int32_t target[], type);
+bool setTarget(int16_t target[], type);
+int32_t getTarget(int axis);                // target in steps on the axis
 
-// ticker
-// ticker, call as often as possible.Will return True if the motor is spinning
-// Steps are taken here both for movement by points and for speed rotation
-Bool Tick ();
+// Ticker
+// Ticker, call as often as possible. It will return true if the engine turns.
+// Here steps are taken both for movement on points and for rotation on speed.
+bool tick();
 
-// Hand ticker for a call in an interruption or somewhere else.20..50 US is performed
-Bool Tickmanual ();
+// A hand ticker to call in interruption or whatever. Perform 20..50 us.
+bool tickManual();
 
-// ======= The defines of settings ==========
-// announce before connecting the library
-#define gs_fast_profile size_massive (for example 10)
-Includes a fast speed planner.Acceleration/braking area is broken
-For the indicated number of segments (+8 bytes of SRAM to the site), the speed will be the same on them.
-This allows you to quickly calculate the speed of the motor and reach 30,000 step/s on the acceleration site
-(in normal mode, half as much).
-`` `
+// =================
+// announce
+#define GS_FAST_PROFILE размер_массива (например 10)
+Включает быстрый планировщик скорости. Участок разгона/торможения разбивается 
+на указанное количество отрезков (+8 байт SRAM на участок), на них скорость будет одинаковая. 
+Это позволяет быстро вычислять скорость мотора и достигнуть 30000 шаг/с на участке разгона 
+(в обычном режиме в два раза меньше).
+```
 
 ### Example
-The rest of the examples look at ** Examples **!
-`` `CPP
-// Basic example: how to create and launch a planner
-// When starting, the motors will be sent to the first position
-// when reaching - on the second.After that, the movement will stop
-// Open Plotter and see graphs
+For more examples see **examples**!
+```cpp
+// Basic Example: How to Create and Run a Planner
+// When starting, the engines will be sent to the first position.
+// When you get there, the second. After that, the movement will stop.
+// Open the plotter and watch the charts.
 
-#incLude "gyverplanner.h"
-// Create the motors of the STEPPER class indicating the type of driver and pins
-// Motors should be with the same type of driver
-// Here they are handsome
-STEPPER <TPPER2Wire> STEPPER1 (2, 3);
-STEPPER <TPPER2Wire> STEPPER2 (4, 5);
+#include "GyverPlanner.h"
+// create Stepper class motors indicating the type of driver and pins
+// Motors should have the same type of driver.
+// They're beautiful.
+Stepper<STEPPER2WIRE> stepper1(2, 3);
+Stepper<STEPPER2WIRE> stepper2(4, 5);
 
-// Create a planner, indicate in <> the type of driver like motors
-// and the number of axes equal to the number of engines (any more than 1)
-GPlanner <stPper2Wire, 2> Planner;
+// create a scheduler, specify in <> the type of driver as the motors
+// number of axles equal to the number of motors (any more than 1)
+GPlanner<STEPPER2WIRE, 2> planner;
 
-VOID setup () {
-  Serial.Begin (115200);
-  // Add steps to the axis
-  Planner.Addstepper (0, STEPPER1);// axis 0
-  Planner.Addstepper (1, STEPPER2);// axis 1
+void setup() {
+  Serial.begin(115200);
+  // We put steppes on the axles.
+  planner.addStepper(0, stepper1);  // zero-axis
+  planner.addStepper(1, stepper2);  // axis 1
 
-  // set acceleration and speed
-  Planner.Setacceleration (100);
-  Planner.SetmaxSpeed (300);
+  // setting acceleration and speed
+  planner.setAcceleration(100);
+  planner.setMaxSpeed(300);
 
-  Planner.Reset ();// Reset all positions in 0 (they are already in 0 at launch)
+  planner.reset();  // Reset all positions to 0 (they are already at 0 at launch)
 
-  // array with target positions of the axes, the size of the array is equal to the number of axes
-  int target [] = {300, 200};
+  // array with target axis positions, the size of the array is equal to the number of axes
+  int target[] = {300, 200};
 
-  // Send
-  Planner.Settarget (Target);
+  // send out
+  planner.setTarget(target);
 }
 
-VOID loop () {
-  // here is the movement of motors, call as often as possible
-  Planner.Tick ();
+void loop() {
+  // This is where the motors move, call as often as possible.
+  planner.tick();
 
-  // will return True if all the engines have arrived
-  if (Planner.read ()) {
-    // Download a new point
-    int Newtarget [] = {10, 50};
-    Planner.Settarget (Newtarget);
+  // It will return true if all the engines are gone.
+  if (planner.ready()) {
+    // load up a new point
+    int newTarget[] = {10, 50};
+    planner.setTarget(newTarget);
   }
 
-  // asynchronously I bring graphics to the port
-  Static uint32_t tmr;
-  if (millis () - tmr> = 20) {
-    TMR = Millis ();
-    Serial.print (stPper1.pos);
-    Serial.print (',');
-    Serial.println (stPper2.pos);
+  // Asynchronously display in the graphic port
+  static uint32_t tmr;
+  if (millis() - tmr >= 20) {
+    tmr = millis();
+    Serial.print(stepper1.pos);
+    Serial.print(',');
+    Serial.println(stepper2.pos);
   }
 }
-`` `
+```
 </details>
 
-<a id="planner2"> </a>
-## gyverplanner2
+<a id="planner2"></a>
+## GyverPlanner2
 ### Description
-A multi -axis planner of trajectories for walking engines and creating a CNC machine
-- Speed planning on the route.Customer buffer
-- Max.speed:
-  - Conventional mode: 37,000 step/s on full, 14,000 step/s on acceleration
-  - Fast profile: 37000 step/s on full, 37,000 step/s on acceleration
-- trapezoidal speed profile (2nd order planner)
-- setting speed and acceleration
-- Any number of axes.Will move synchronously to the set goals
-- fast integer model of path planning and speed
-- regime of constant rotation for one axis (for movement towards the end for example)
-- Brake/smooth stop/pause on the planner trajectory
-- optimized for the interruption of the timer
-- Fast control of steps steps for Arduino avr
-- Speed and acceleration can be set at any time, but they are used after stopping the motor!
+Multi-axis trajectories planner for stepper motors and CNC machine creation
+- Speed planning on the march. TRAINING BUFFER
+- Max speed:
+  - Normal mode: 37,000 steps / s at full, 14,000 steps / s at acceleration
+  - Fast profile: 37,000 steps / s at full, 37,000 steps / s at acceleration
+- Trapeceidal speed profile (order 2 scheduler)
+- Adjusting speed and acceleration
+- Any number of axes. They will move synchronously to their goals.
+- Fast Integer Trajectory and Speed Planning Model
+- Constant rotation mode for one axis (for movement to the tip for example)
+- Brake/smooth stop/pause on scheduler trajectory
+- Optimized for work on timer interruption
+- Quick control of stepping pins for the Arduino AVR
+- Speed and acceleration can be set at any time, but they are applied after the engine stops!
 
-### Logic of Work
-The planner controls any number of engines, rotating them to the indicated position.In this version
-A trajectory buffer is implemented, which can be filled with dots while Available () returns True.
-Addtarget () accepts:
-- array of points specified in the initialization of the size
-- Stop flag.If you transfer 1 - the planner stops the engine at this point and will wait for the further resume () command ()
-- Type of point: absolute (absolute coordinate) or relative (relative to the previous point)
+### Logic of work
+The scheduler manages any number of motors, rotating them to the specified position. In this version
+A trajectory buffer is implemented, which can be filled with points until available() returns true.
+addTarget() receives:
+- Array of points specified at initialization of size
+- Stop flag. If you transmit 1 - the scheduler will stop the engine at this point and will wait for the further command resume()
+- Point type: ABSOLUTE (absolute coordinate) or RELATIVE (relative to the previous point)
 
-Когда плаанировщик приезжает до точки остановки - он встаёт на паузу (например для включения выключенияtool),
-After performing the necessary actions, we call Resume () and he continues to move.
-Unlike the previous GPlanner, the GPlanner2 has been implemented by the path of the path in the buffer and planning
-speeds for all points, which allows the system to move faster and not slow down at each point.
+When the plane operator arrives at the stop point, he pauses (for example, to turn off the instrument),
+After performing the necessary actions, call resume() and it continues to move.
+Unlike the previous GPlanner, GPlanner2 implements buffer path calculation and planning.
+speeds for all points, allowing the system to move faster and not brake at every point.
 - See the simulation in Processing: Planner Simulation/Planner2 folder
 
-<details>
-<summary> Expand </summary>
+<details >>
+<summary>Return</summary >>
 
-## H initialization
-`` `CPP
-GPlanner2 <driver, number of axes> Planner;// Announcement
-GPlanner2 <driver, number of axes, buffer size> Planner;// + buffer size (in silence 32)
-`` `
+### Initialization
+```cpp
+GPlanner2<драйвер, количество осей> planner;                 // declaration
+GPlanner2<драйвер, количество осей, размер буфера> planner;  // + buffer size (by omission 32)
+```
 
-### Usage
-`` `CPP
-VOID Addstepper (Uint8_T Axis, STEPPER & STP);// Connect the STEPPER class motor on the axis axis
-// Note: the type of driver should match the planner and motors
+### Use of use
+```cpp
+void addStepper(uint8_t axis, Stepper &stp);    // connect the Stepper motor to the axis
+// note: the driver type must match the scheduler and motors
 
-VOID Setbacklash (Uint8_t Axis, Uint16_T Steps);// Set the back of the ramp on the axis axis in the number of steps steps
-VOID Enable ();// Turn on the motors
-Void Disable ();// Turn off the motors
-VOID Power (Bool V);// Switch power
+void setBacklash(uint8_t axis, uint16_t steps); // set the luft compensation on the axis axis in the number of steps
+void enable();                              // motorize
+void disable();                             // turn off
+void power(bool v);                         // switch off
 
-// SETTINGS
-VOID setmaxSpeed (Float NV);// Installation of the maximum speed of the planner in the step/s
-VOID setaccoleration (uint16_t na);// Installation of acceleration of the planner in the step/sec^2
-VOID Setdta (Float Newdta);// Install DT shift shifts in a turn, 0.0 .. 1.0.0.3
+// STRUCTIONS
+void setMaxSpeed(float nV);                 // setting the maximum scheduler speed in step/sec
+void setAcceleration(uint16_t nA);          // setting scheduler acceleration in step/sec2
+void setDtA(float newDta);                  // set the change of speed in turn, 0.0... 1.0 in silence. 0.3.3
 
-// planner
-uint32_t getperiod ();// returns time to the ISS until the next call Tick/Tickmanual
-VOID Start ();// Start work
-VOID Stop ();// Stop smoothly (with a given acceleration)
-VOID Brake ();// sharply stop the motors from any regime
-VOID Resume ();// Continue after stopping or the final point of the route
-VOID Reset ();// throw off the counters of all motors in 0
-Bool Ready ();// Flag of reaching a stop point.After it you need to call resume
-Bool Available ();// True - there is a place for a new point in the planner's buffer
+// Planners
+uint32_t getPeriod();                       // Returns time to MX until the next tick/tickManual call
+void start();                               // start
+void stop();                                // stop smoothly (with a predetermined acceleration)
+void brake();                               // Stop motors from any mode
+void resume();                              // Continue after a stop or end point of the route
+void reset();                               // reset all motor counters to 0
+bool ready();                               // flag to reach the stopping point. After that, you need to call for a resume.
+bool available();                           // True - in the planner buffer there is a place under the new point
 
-uint8_t getstatus ();// current status:
-// 0 Waiting for the command (stopped)
-// 1 waiting for the buffer
+uint8_t getStatus();                        // Current status:
+// 0 Team waiting (suspended)
+// 1 wait for a buffer
 // 2 on the way
-// 3 per pause
+// 3 on pause
 // 4 on stop
-// 5 SetSpeed is spinning
+// 5 spins setSpeed
 
-// SPEED
-VOID SetSpeed (Uint8_t Axis, Float Speed);// Permanent rotation mode for axis axis at the speed of Speed Step/S (MB Neutheity)
+// Speed
+void setSpeed(uint8_t axis, float speed);   // constant rotation mode for the axis axis at speed step/sec (IB negative)
 
 // Position
-// Add a new point of the route.Coordinate array, ending flag and absolute/relative
-VOID Addtarget (Int32_t Tar [], Uint8_t L, GS_Postype Type = Absolute);
-VOID Addtarget (int16_t tar [], uint8_t l, gs_postype test = absolute);
-// Absolute - specific coordinates of the point where to move
-// Relative - displacement relative to the current motors provisions
+// Add a new route point. Array of coordinates, ending flag and absolute/relative
+void addTarget(int32_t tar[], uint8_t l, GS_posType type = ABSOLUTE);
+void addTarget(int16_t tar[], uint8_t l, GS_posType type = ABSOLUTE);
+// ABSOLUTE - specific coordinates of the point where to go
+// RELATIVE - displacement relative to current motor positions
 
-VOID setcurrent (int16_t cur []);// establish the current position of the engines
-VOID setcurrent (int32_t cur []);// establish the current position of the engines
-Int32_T Getcurrent (int Axis);// Get the current position on the axis axis
-Int32_T Gettarget (int Axis);// Get the current target in steps on the axis axis
+void setCurrent(int16_t cur[]);             // position
+void setCurrent(int32_t cur[]);             // position
+int32_t getCurrent(int axis);               // Get the current position on the axis axis
+int32_t getTarget(int axis);                // Get the current goal in steps on the axis axis
 
-// ticker
-// ticker, call as often as possible.Will return True if the motor is spinning
-// Steps are taken here for movement by points, for rotation in speed, as well as restructuring the buffer
-Bool Tick ();
+// Ticker
+// Ticker, call as often as possible. It will return true if the engine turns.
+// Here steps are taken to move on points, to rotate on speed, as well as the restructuring of the buffer.
+bool tick();
 
-// Hand ticker for a call in an interruption or somewhere else.20..50 US is performed
-Bool Tickmanual ();
+// A hand ticker to call in interruption or whatever. Perform 20..50 us.
+bool tickManual();
 
-// Buffer handler.It itself is called in Tick.It is necessary to call manually when working with Tickmanual
-// will return True if the planner sent motors to a new position (at that moment you can run the timer)
-Void Checkbuffer ();
+// buffer handler. He's called in the tick. You need to call manually when working with TickManual
+// will return true if the scheduler has sent the motors to a new position (at which point you can start the timer)
+void checkBuffer();
 
-// ======= The defines of settings ==========
-// announce before connecting the library
-#define gs_fast_profile size_massive (for example 10)
-Includes a fast speed planner.Acceleration/braking area is broken
-for the indicated number of segments (+8 bytes SRAM for the site), onThe cranberries will be the same.
-This allows you to quickly calculate the speed of the motor and reach 30,000 step/s on the acceleration site
-(in normal mode, half as much).
-`` `
+// =================
+// announce
+#define GS_FAST_PROFILE размер_массива (например 10)
+Включает быстрый планировщик скорости. Участок разгона/торможения разбивается 
+на указанное количество отрезков (+8 байт SRAM на участок), на них скорость будет одинаковая. 
+Это позволяет быстро вычислять скорость мотора и достигнуть 30000 шаг/с на участке разгона 
+(в обычном режиме в два раза меньше).
+```
 
 ### Example
-The rest of the examples look at ** Examples **!
-`` `CPP
-// Example with a route recorded in memory
-// See the schedule, or better start the STEPPERPLOT
+For more examples see **examples**!
+```cpp
+// notebook
+// Take a look at the schedule and start stepperPlot.
 
-int path [] [2] = {{
+int path[][2] = {
   {100, 250},
   {160, 30},
   {230, 250},
@@ -716,116 +721,115 @@ int path [] [2] = {{
   {270, 100},
 };
 
-// number of points (let the compiler consider it)
-// as the weight of the total array / (2+2) byte
-int nodeamount = sizeof (Path) / 4;
+// Number of points (let the compiler count)
+// as the weight of the entire array / (2+2) byte
+int nodeAmount = sizeof(path) / 4;
 
-#include "gyverplanner2.h"
-STEPPER <TPPER2Wire> STEPPER1 (2, 3);
-STEPPER <TPPER2Wire> STEPPER2 (4, 5);
-GPlanner2 <STEPPER2Wire, 2> Planner;
+#include "GyverPlanner2.h"
+Stepper<STEPPER2WIRE> stepper1(2, 3);
+Stepper<STEPPER2WIRE> stepper2(4, 5);
+GPlanner2<STEPPER2WIRE, 2> planner;
 
-VOID setup () {
-  Serial.Begin (115200);
-  // Add steps to the axis
-  Planner.Addstepper (0, STEPPER1);// axis 0
-  Planner.Addstepper (1, STEPPER2);// axis 1
+void setup() {
+  Serial.begin(115200);
+  // We put steppes on the axles.
+  planner.addStepper(0, stepper1);  // zero-axis
+  planner.addStepper(1, stepper2);  // axis 1
 
-  // set acceleration and speed
-  Planner.Setacceleration (500);
-  Planner.SetmaxSpeed (500);
+  // setting acceleration and speed
+  planner.setAcceleration(500);
+  planner.setMaxSpeed(500);
 
-  // The starting point of the system should coincide with the first point of the route
-  Planner.Setcurrent (Path [0]);
-  Planner.Start ();
+  // The starting point of the system must coincide with the first point of the route.
+  planner.setCurrent(path[0]);
+  planner.start();
 }
 
-int// Mainplane Mixture meter
-VOID loop () {
-  // here is the movement of motors, call as often as possible
-  Planner.Tick ();
+int count = 0;  // router
+void loop() {
+  // This is where the motors move, call as often as possible.
+  planner.tick();
 
-  // If there is a place in the planner's buffer
-  if (Planner.available ()) {
-    // Add the point of the route and whether it is a stop point (0 - no)
-    Planner.Addtarget (Path [Count], 0);
-    IF (++ Count> = Sizeof (Path) / 4) Count = 0;// Clothing
+  // if there is room in the planner buffer
+  if (planner.available()) {
+    // Add a route point and whether it is a stop point (0 - no)
+    planner.addTarget(path[count], 0);
+    if (++count >= sizeof(path) / 4) count = 0; // loop
   }
 
-  // asynchronously I bring graphics to the port
-  Static uint32_t tmr;
-  if (millis () - tmr> = 20) {
-    TMR = Millis ();
-    Serial.print (stPper1.pos);
-    Serial.print (',');
-    Serial.println (stPper2.pos);
+  // Asynchronously display in the graphic port
+  static uint32_t tmr;
+  if (millis() - tmr >= 20) {
+    tmr = millis();
+    Serial.print(stepper1.pos);
+    Serial.print(',');
+    Serial.println(stepper2.pos);
   }
 }
-`` `
+```
 </details>
 
-<a id="versions"> </a>
-## versions
-- V1.1 - added the possibility of smooth speed control in Keep_Speed (see example of acceldeccelbutton)
-- V1.2 - Added support ESP8266
-- V1.3 - Changed the logic of Settarget (, Relative)
-- v1.4 - added a delay for STEP, you can configure the define Driver_Step_Time
-- V1.5 - Filled Bag for Plates ESP
-- V1.6 - Fixed a stop for STEPPER4Wire_HALF, speed can be set in Float (for slow speeds)
-- V1.7 - Bug corrected in negative speed (thanks to Evgeny Solodov)
-- V1.8 - Fixed Keep_Speed mode
-- V1.9 - Fixed error with ESP function max
-- V1.10 - increased accuracy
-- v1.11 - increased accuracy of the speed task
-- V1.12 - The smooth work in Keep_Speed is featured.Added support for "external" drivers.The SMOOTH argument from SetSpeed is removed
-- v1.13 - small bugs, optimization are fixed
-- V1.14 - Fixed errors of dispersal and braking in Keep_Speed
-- V1.15 - Optimization, small bugs are fixed, Stop () no longer drops MaxSpeed
-- v1.15.2 - added enable EN if specified, even with Autopower disconnected
-- V2.0 - optimization.The nucleus of the step is taken into a separate STEPPER class.Added multi -axial trajectory planners
-- V2.1 - added Gyverstepper2, a simplified and optimized version of Gyverstepper
-- V2.1.1 - Fixed a bug in Gyverstepper
-- V2.1.2 - Digispark compatibility
-- V2.1.3 - Follow_POS repaired in Gstepper, repaired Relative in GPlanner2 and corrected the bug with jerks
-- V2.1.4 - GPlanner2: corrected jerks, added adaptive rebuilding the trajectory without stops, a bit optimized the calculations
-- V2.1.5 - the ability to change speed and acceleration during the planner’s operation (GSTEPPER2, GPlanner, GPlanner2)
-- V2.1.6 - Fixed compilation error when calling Disable () to Gstepper
-- v2.1.7 - added Clearbuffer () to gplanner2
-- V2.1.8 - Optimization, fixed Keep_Speed to gstepper
-- V2.2.0 - added the high -speed GS_FAST_PROFILE profile for gstepper2, GPlanner, GPlanner2.Supporting the "tracking" mode for gstepper2
-- V2.2.1 - Small SRAM optimization
-- V2.3 - FIX Compiler Warnings, ESP32 support
-- V2.4 - increased smoothness of the movement of steps in Planner and Planner2.Fixed a bug in STEPPER2
-- v2.5 - Fixed a smooth speed change for Keep_Speed
-- V2.6
-    - Disable () in virtual mode disconnects the signal from the motor (for 4-provdrivers)
-    - Improved performance for STEP-DIR drivers
-    - added Autopower () to gstepper2
-    - Fixed a jerk when changing the direction to Gstepper
-- V2.6.1 - Corrected Baga in Gstepper2
-- V2.6.2 - Optimized calculations in Gstepper2, GPlanner and GPlanner2
-- V2.6.3 - Reverse () in the STEP -dir driver is now used immediately
-- V2.6.4 - Fixed Relative Settarget () at Gplanner https://github.com/gyverlibs/gyverstepper/pull/11
-- V2.7
+<a id="versions"></a>
+## Versions
+- v1.1 - added smooth speed control in KEEP SPEED (see example accelDeccelButton)
+- v1.2 - ESP8266 support added
+- v1.3 - changed the logic of setTarget(, RELATIVE)
+- v1.4 - added delay for STEP, you can configure DRIVER STEP TIME
+- v1.5 - Fixed bug for ESP boards
+- v1.6 - Fixed stop for STEPPER4WIRE HALF, speed can be set in float (for slow speeds)
+- v1.7 - Fixed a negative speed bug (thanks Evgeny Solodova)
+- v1.8 - KEEP SPEED mode fixed
+- v1.9 - Fixed error with esp function max
+- v1.10 - increased accuracy
+- v1.11 - increased accuracy of speed setting
+- v1.12 - Fixed smooth operation in KEEP SPEED. Support for "external" drivers is added. Removed SMOOTH argument from setSpeed
+- v1.13 - fix small bugs, optimization
+- v1.14 - Acceleration and braking errors fixed in KEEP SPEED
+- v1.15 - Optimization, minor bugs fixed, stop() no longer resets maxSpeed
+- v1.15.2 - added EN activation if specified, even when autoPower is disabled
+- v2.0 is optimization. The core of the stepper is placed in a separate Stepper class. Multi-axis trajectory planners added
+- v2.1 added GyverStepper2, a simplified and optimized version of GyverStepper
+- v2.1.1 - Fixed bug in GyverStepper
+- v2.1.2 - Digispark compatibility
+- v2.1.3 – Fixed FOLLOW POS in GStepper, fixed RELATIVE in GPlanner2, and fixed the jerk bug
+- v2.1.4 - GPlanner2: corrected jerks, added adaptive trajectory rearrangement without stopping, slightly optimized calculations
+- v2.1.5 - the ability to change speed and acceleration during operation of the scheduler (GStepper2, GPlanner, GPlanner2)
+- v2.1.6 - Fixed compilation error when calling disable() in GStepper
+- v2.1.7 - added clearBuffer() to GPlanner2
+- v2.1.8 - Optimization, fixed KEEP SPEED in GStepper
+- v2.2.0 - GS FAST PROFILE speed profile added for GStepper2, GPlanner, GPlanner2. Support for tracking mode for GStepper2
+- v2.2.1 - small optimization of SRAM
+- v2.3 - fix compiler warnings, support for esp32
+- v2.4 - increased smoothness of movement of steppes in Planner and Planner2. Fixed bug in Stepper2
+- v2.5 - Smooth speed change fixed for KEEP SPEED
+- v2.6
+    - disable() in virtual mode disables the signal from the motor (for 4-wire drivers)
+    - Improved performance for step-dir drivers
+    - Add autoPower() to GStepper2
+    - Corrected jerk when changing direction in GStepper
+- v2.6.1 - Corrected bug in GStepper2
+- v2.6.2 - Optimized calculations in GStepper2, GPlanner and GPlanner2
+- v2.6.3 - reverse() in step-dir driver now applies immediately
+- v2.6.4 - fixed RELATIVE setTarget() in GPlannerhttps://github.com/GyverLibs/GyverStepper/pull/11
+- v2.7
   - Fixed various compilation errors
   - Fixed some critical bugs
-  - Added power management to the planners
-  - added backlash compensation to planners
-  - Fixed bugs with zero acceleration in all libraries
-  - Fixed a slow stop and a blow with a large acceleration
-  - increased performance for ESP8266
+  - Added food management to planners
+  - Added backup compensation to planners
+  - Zero Acceleration Bugs Fixed in All Libraries
+  - corrected slow stop and impact at high acceleration
+  - Increased performance for esp8266
 
-<a id="feedback"> </a>
-## bugs and feedback
-Create ** Issue ** when you find the bugs, and better immediately write to the mail [alex@alexgyver.ru] (mailto: alex@alexgyver.ru)
-The library is open for refinement and your ** pull Request ** 'ow!
+<a id="feedback"></a>
+## Bugs and feedback
+If you find bugs, create **Issue**, or better write to the mail immediately.[alex@alexgyver.ru](mailto:alex@alexgyver.ru)
+The library is open for revision and your **Pull Requests*!
 
-
-When reporting about bugs or incorrect work of the library, it is necessary to indicate:
-- The version of the library
-- What is MK used
+When reporting bugs or incorrect work of the library, it is necessary to specify:
+- Library version
+- What is used by the IC
 - SDK version (for ESP)
-- version of Arduino ide
-- whether the built -in examples work correctly, in which the functions and designs are used, leading to a bug in your code
-- what code has been loaded, what work was expected from it and how it works in reality
-- Ideally, attach the minimum code in which the bug is observed.Not a canvas of a thousand lines, but a minimum code
+- Arduino IDE version
+- Are embedded examples that use features and designs that cause bugs in your code working correctly?
+- What code was downloaded, what work was expected from it and how it works in reality
+- Ideally, attach the minimum code in which the bug is observed. Not a canvas of a thousand lines, but a minimum code.
