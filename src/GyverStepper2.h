@@ -291,13 +291,17 @@ class GStepper2 : public Stepper<_DRV, _TYPE> {
     }
 
     // установить цель в градусах и опционально режим
-    void setTargetDeg(int32_t ntar, GS_posType type = ABSOLUTE) {
+    template <typename T>
+    void setTargetDeg(T ntar, GS_posType type = ABSOLUTE) {
         setTarget((int32_t)ntar * stepsRev / 360L, type);
     }
 
     // установить цель в градусах float и опционально режим
+    void setTargetDeg(float ntar, GS_posType type = ABSOLUTE) {
+        setTarget(ntar * stepsRev / 360.0f, type);
+    }
     void setTargetDeg(double ntar, GS_posType type = ABSOLUTE) {
-        setTarget(ntar * stepsRev / 360.0, type);
+        setTargetDeg((float)ntar, type);
     }
 
     // получить целевую позицию
@@ -375,8 +379,8 @@ class GStepper2 : public Stepper<_DRV, _TYPE> {
                 pause();       // значит флаг на паузу
                 return;
             }
-            stopStep = 1000000ul / us;                           // наша скорость
-            stopStep = (uint32_t)stopStep * stopStep / 2 / a;    // дистанция остановки. a не может быть 0
+            stopStep = 1000000ul / us;                         // наша скорость
+            stopStep = (uint32_t)stopStep * stopStep / 2 / a;  // дистанция остановки. a не может быть 0
             us10 = (uint32_t)us << 10;
             status = 4;
         }
